@@ -27,7 +27,7 @@ def _download_file_from_remote_location(fpath: str, url: str) -> None:
 def _is_remote_location_available() -> bool:
     return False
 
-USER_AGENT = "pytorch/vision"
+USER_AGENT = "PyPHM"
 
 
 def _urlretrieve(url: str, filename: str, chunk_size: int = 1024) -> None:
