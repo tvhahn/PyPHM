@@ -1,3 +1,4 @@
+from importlib.resources import path
 import scipy.io as sio
 import numpy as np
 import pandas as pd
@@ -47,12 +48,12 @@ class MillingDataPrep:
 
     def __init__(
         self,
-        path_raw_data,
-        path_df_labels=None,
-        window_size=64,
-        stride=64,
-        cut_drop_list=[17, 94],
-        download=False,
+        path_raw_data_folder: str,
+        path_df_labels: str = None,
+        window_size: int = 64,
+        stride: int = 64,
+        cut_drop_list: list = [17, 94],
+        download: bool = False,
     ):
 
 
