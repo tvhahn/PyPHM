@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from .pyphm import PHMDataset
 from .utils import download_and_extract_archive, extract_archive, verify_str_arg, check_integrity
+import os
 
 """
 Contains the data prep class for the UC-Berkely milling data set.
@@ -56,11 +57,12 @@ class MillingDataPrep(PHMDataset):
         stride: int = 64,
         cut_drop_list: list = [17, 94],
         download: bool = False,
+        dataset_folder_name: str = "milling",
     ) -> None:
-        super().__init__(root)
+        super().__init__(root, dataset_folder_name)
 
 
-
+        self.dataset_path = self.root / self.dataset_folder_name
         self.data_file = root  # path to the raw data file
         self.window_size = window_size  # size of the window
         self.stride = stride  # stride between windows
@@ -75,8 +77,8 @@ class MillingDataPrep(PHMDataset):
     
     def _check_exists(self) -> bool:
         return all(
-            check_integrity(os.path.join(self.raw_folder, os.path.splitext(os.path.basename(url))[0]))
-            for url, _ in self.resources
+            check_integrity(os.path.join(self.raw_folder, os.path.splitext(os.path.basename(file_name))[0]))
+            for file_name, _ in self.resources
         )
 
 

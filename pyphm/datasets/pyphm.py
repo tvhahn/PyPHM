@@ -19,7 +19,7 @@ class PHMDataset:
     def __init__(
         self,
         root: str,
-        dataset_folder_name: str = "phm_dataset",
+        dataset_folder_name: str,
     ) -> None:
         
         self.root = Path(root)
