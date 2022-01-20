@@ -6,6 +6,7 @@ import lzma
 import os
 import os.path
 import pathlib
+from pathlib import Path
 import re
 import tarfile
 import urllib
@@ -53,7 +54,7 @@ def gen_bar_updater() -> Callable[[int, int, int], None]:
     return bar_update
 
 
-def calculate_md5(fpath: str, chunk_size: int = 1024 * 1024) -> str:
+def calculate_md5(fpath: Path, chunk_size: int = 1024 * 1024) -> str:
     md5 = hashlib.md5()
     with open(fpath, "rb") as f:
         for chunk in iter(lambda: f.read(chunk_size), b""):
@@ -61,12 +62,12 @@ def calculate_md5(fpath: str, chunk_size: int = 1024 * 1024) -> str:
     return md5.hexdigest()
 
 
-def check_md5(fpath: str, md5: str, **kwargs: Any) -> bool:
+def check_md5(fpath: Path, md5: str, **kwargs: Any) -> bool:
     return md5 == calculate_md5(fpath, **kwargs)
 
 
-def check_integrity(fpath: str, md5: Optional[str] = None) -> bool:
-    if not os.path.isfile(fpath):
+def check_integrity(fpath: Path, md5: Optional[str] = None) -> bool:
+    if not fpath.exists() and not fpath.is_file():
         return False
     if md5 is None:
         return True

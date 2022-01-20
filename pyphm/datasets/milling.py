@@ -77,7 +77,7 @@ class MillingDataPrep(PHMDataset):
     
     def _check_exists(self) -> bool:
         return all(
-            check_integrity(os.path.join(self.raw_folder, os.path.splitext(os.path.basename(file_name))[0]))
+            check_integrity(self.dataset_path / file_name)
             for file_name, _ in self.resources
         )
 
