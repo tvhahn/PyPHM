@@ -123,13 +123,30 @@ class MillingPrepOne(MillingDataLoad):
         dataset_folder_name: str = "milling",
         data: np.ndarray = None,
     ) -> None:
-        super().__init__(root, dataset_folder_name, dataset_path,  download, data)
+        super().__init__(root, dataset_folder_name, dataset_path, download, data)
 
         self.window_size = window_size  # size of the window
         self.stride = stride  # stride between windows
         self.cut_drop_list = cut_drop_list  # list of cut numbers to be dropped
 
-        print("data type: ", type(self.data))
+        if path_df_labels is not None:
+            self.path_df_labels = path_df_labels
+        else:
+            self.path_df_labels = self.dataset_path / "auxilary_metadata" / "milling_labels_with_tool_class.csv"
+
+        # load the labels dataframe
+        self.df_labels = pd.read_csv(self.path_df_labels)
+
+        if self.cut_drop_list is not None:
+            self.df_labels.drop(self.cut_drop_list, inplace=True)  # drop the cuts that are bad
+
+        self.df_labels.reset_index(drop=True, inplace=True)  # reset the index
+
+        self.field_names = self.data.dtype.names
+        self.signal_names = self.field_names[7:][::-1]
+
+        print(self.signal_names)
+
 
 
 
