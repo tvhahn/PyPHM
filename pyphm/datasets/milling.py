@@ -54,10 +54,6 @@ class MillingDataLoad(PHMDataset):
     def __init__(
         self,
         root: Path,
-        path_df_labels: Path = None,
-        window_size: int = 64,
-        stride: int = 64,
-        cut_drop_list: list = [17, 94],
         download: bool = False,
         dataset_folder_name: str = "milling",
     ) -> None:
