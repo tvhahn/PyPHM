@@ -57,7 +57,7 @@ class MillingDataLoad(PHMDataset):
         download: bool = False,
         dataset_folder_name: str = "milling",
     ) -> None:
-        super(PHMDataset, self).__init__(root, dataset_folder_name)
+        super().__init__(root, dataset_folder_name)
 
 
         self.dataset_path = self.root / self.dataset_folder_name
