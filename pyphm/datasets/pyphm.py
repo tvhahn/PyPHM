@@ -23,6 +23,7 @@ class PHMDataset:
         dataset_folder_name: str,
     ) -> None:
         
+        print("type(root) = ", type(root))
         self.root = Path(root)
         self.dataset_folder_name = dataset_folder_name
 

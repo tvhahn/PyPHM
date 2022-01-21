@@ -57,7 +57,7 @@ class MillingDataLoad(PHMDataset):
         download: bool = False,
         dataset_folder_name: str = "milling",
     ) -> None:
-        super().__init__(root, dataset_folder_name)
+        super(PHMDataset, self).__init__(root, dataset_folder_name)
 
 
         self.dataset_path = self.root / self.dataset_folder_name
@@ -123,7 +123,7 @@ class MillingPrepOne(MillingDataLoad):
         dataset_folder_name: str = "milling",
         data: np.ndarray = None,
     ) -> None:
-        super().__init__(root, dataset_folder_name, dataset_path, download, data)
+        super().__init__(root, download, data)
 
         self.window_size = window_size  # size of the window
         self.stride = stride  # stride between windows
