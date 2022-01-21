@@ -26,5 +26,4 @@ class PHMDataset:
         self.root = Path(root)
         self.dataset_folder_name = dataset_folder_name
 
-        self.dataset_path = self.root / self.dataset_folder_name
 
