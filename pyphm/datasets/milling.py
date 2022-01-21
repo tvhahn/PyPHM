@@ -65,7 +65,6 @@ class MillingDataPrep(PHMDataset):
 
 
         self.dataset_path = self.root / self.dataset_folder_name
-        print("self.dataset_path: ", type(self.dataset_path))
         self.data_file = root  # path to the raw data file
         self.window_size = window_size  # size of the window
         self.stride = stride  # stride between windows
@@ -79,14 +78,13 @@ class MillingDataPrep(PHMDataset):
 
     
     def _check_exists(self) -> bool:
-        print('checking!!!!')
         return all(
             check_integrity(self.dataset_path / file_name)
             for file_name, _ in self.resources
         )
 
     def download(self) -> None:
-        """Download the MNIST data if it doesn't exist already."""
+        """Download the UC Berkeley milling data if it doesn't exist already."""
 
         if self._check_exists():
             return
