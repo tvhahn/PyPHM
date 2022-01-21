@@ -75,6 +75,8 @@ class MillingDataPrep(PHMDataset):
         if not self._check_exists():
             raise RuntimeError("Dataset not found. You can use download=True to download it")
 
+        self.data = self._load_mat()
+
     
     def _check_exists(self) -> bool:
         return all(
@@ -108,11 +110,10 @@ class MillingDataPrep(PHMDataset):
                 raise RuntimeError(f"Error downloading {filename}")
 
     def _load_mat(self) -> np.ndarray:
-        """Load the mat file and return the data."""
-
-        mill_data = sio.loadmat(self.dataset_path / 'mill.mat', struct_as_record=True)
-        mill_data = mill_data["mill"]
-        return mill_data
+        """Load the mat file and return the data as a numpy array."""
+        data = sio.loadmat(self.dataset_path / 'mill.mat', struct_as_record=True)
+        print("Loading data!!!!")
+        return data["mill"]
     
 
 
