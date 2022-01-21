@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from .pyphm import PHMDataset
+from typing import Any, Callable, List, Optional, Tuple
 from .utils import download_and_extract_archive, extract_archive, verify_str_arg, check_integrity
 import os
 from urllib.error import URLError
@@ -54,8 +55,10 @@ class MillingDataLoad(PHMDataset):
     def __init__(
         self,
         root: Path,
-        download: bool = False,
         dataset_folder_name: str = "milling",
+        download: bool = False,
+        dataset_path: Path = None,
+        data: np.ndarray = None,
     ) -> None:
         super().__init__(root, dataset_folder_name)
 
@@ -114,16 +117,16 @@ class MillingPrepOne(MillingDataLoad):
     def __init__(
         self,
         root: Path,
-        path_df_labels: Path = None,
+        dataset_folder_name: str = "milling",
+        download: bool = False,
         dataset_path: Path = None,
+        data: np.ndarray = None,
+        path_df_labels: Path = None,
         window_size: int = 64,
         stride: int = 64,
         cut_drop_list: list = [17, 94],
-        download: bool = False,
-        dataset_folder_name: str = "milling",
-        data: np.ndarray = None,
     ) -> None:
-        super().__init__(root, download, data)
+        super().__init__(root, dataset_folder_name, download, dataset_path, data)
 
         self.window_size = window_size  # size of the window
         self.stride = stride  # stride between windows
@@ -132,7 +135,8 @@ class MillingPrepOne(MillingDataLoad):
         if path_df_labels is not None:
             self.path_df_labels = path_df_labels
         else:
-            self.path_df_labels = self.dataset_path / "auxilary_metadata" / "milling_labels_with_tool_class.csv"
+            # path of pyphm source directory using pathlib
+            self.path_df_labels = Path(__file__).parent / "auxilary_metadata" / "milling_labels_with_tool_class.csv"
 
         # load the labels dataframe
         self.df_labels = pd.read_csv(self.path_df_labels)
