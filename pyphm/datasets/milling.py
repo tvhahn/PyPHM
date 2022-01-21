@@ -2,9 +2,11 @@ from importlib.resources import path
 import scipy.io as sio
 import numpy as np
 import pandas as pd
+from pathlib import Path
 from .pyphm import PHMDataset
 from .utils import download_and_extract_archive, extract_archive, verify_str_arg, check_integrity
 import os
+from urllib.error import URLError
 
 """
 Contains the data prep class for the UC-Berkely milling data set.
@@ -42,7 +44,7 @@ class MillingDataPrep(PHMDataset):
     """
 
     mirrors = [
-        "https://ti.arc.nasa.gov/m/project/prognostic-repository",
+        "https://ti.arc.nasa.gov/m/project/prognostic-repository/",
     ]
 
     resources = [
@@ -51,8 +53,8 @@ class MillingDataPrep(PHMDataset):
 
     def __init__(
         self,
-        root: str,
-        path_df_labels: str = None,
+        root: Path,
+        path_df_labels: Path = None,
         window_size: int = 64,
         stride: int = 64,
         cut_drop_list: list = [17, 94],
@@ -63,6 +65,7 @@ class MillingDataPrep(PHMDataset):
 
 
         self.dataset_path = self.root / self.dataset_folder_name
+        print("self.dataset_path: ", type(self.dataset_path))
         self.data_file = root  # path to the raw data file
         self.window_size = window_size  # size of the window
         self.stride = stride  # stride between windows
@@ -76,10 +79,37 @@ class MillingDataPrep(PHMDataset):
 
     
     def _check_exists(self) -> bool:
+        print('checking!!!!')
         return all(
             check_integrity(self.dataset_path / file_name)
             for file_name, _ in self.resources
         )
+
+    def download(self) -> None:
+        """Download the MNIST data if it doesn't exist already."""
+
+        if self._check_exists():
+            return
+
+        # pathlib makdir if not exists
+        self.dataset_path.mkdir(parents=True, exist_ok=True)
+        
+        # download files
+        for filename, md5 in self.resources:
+            for mirror in self.mirrors:
+                url = f"{mirror}{filename}"
+                try:
+                    print(f"Downloading {url}")
+                    download_and_extract_archive(url, download_root=self.dataset_path, filename=filename, md5=md5)
+                except URLError as error:
+                    print(f"Failed to download (trying next):\n{error}")
+                    continue
+                finally:
+                    print()
+                break
+            else:
+                raise RuntimeError(f"Error downloading {filename}")
+    
 
 
         

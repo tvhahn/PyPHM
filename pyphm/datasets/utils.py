@@ -67,6 +67,8 @@ def check_md5(fpath: Path, md5: str, **kwargs: Any) -> bool:
 
 
 def check_integrity(fpath: Path, md5: Optional[str] = None) -> bool:
+    print("fpath type in check_integrity func: ", type(fpath))
+    fpath = Path(fpath)
     if not fpath.exists() and not fpath.is_file():
         return False
     if md5 is None:

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple
+from .utils import download_and_extract_archive, extract_archive, verify_str_arg, check_integrity
 
 
 class PHMDataset:
@@ -18,9 +19,12 @@ class PHMDataset:
 
     def __init__(
         self,
-        root: str,
+        root: Path,
         dataset_folder_name: str,
     ) -> None:
         
         self.root = Path(root)
         self.dataset_folder_name = dataset_folder_name
+
+        self.dataset_path = self.root / self.dataset_folder_name
+
