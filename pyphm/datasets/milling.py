@@ -65,7 +65,6 @@ class MillingDataPrep(PHMDataset):
 
 
         self.dataset_path = self.root / self.dataset_folder_name
-        self.data_file = root  # path to the raw data file
         self.window_size = window_size  # size of the window
         self.stride = stride  # stride between windows
         self.cut_drop_list = cut_drop_list  # list of cut numbers to be dropped
@@ -107,6 +106,13 @@ class MillingDataPrep(PHMDataset):
                 break
             else:
                 raise RuntimeError(f"Error downloading {filename}")
+
+    def _load_mat(self) -> np.ndarray:
+        """Load the mat file and return the data."""
+
+        mill_data = sio.loadmat(self.dataset_path / 'mill.mat', struct_as_record=True)
+        mill_data = mill_data["mill"]
+        return mill_data
     
 
 
