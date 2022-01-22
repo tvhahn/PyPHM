@@ -1,4 +1,3 @@
-from importlib.resources import path
 import scipy.io as sio
 import numpy as np
 import pandas as pd
