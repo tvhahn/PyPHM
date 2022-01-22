@@ -5,7 +5,12 @@ import pandas as pd
 from pathlib import Path
 from .pyphm import PHMDataset
 from typing import Any, Callable, List, Optional, Tuple
-from .utils import download_and_extract_archive, extract_archive, verify_str_arg, check_integrity
+from .utils import (
+    download_and_extract_archive,
+    extract_archive,
+    verify_str_arg,
+    check_integrity,
+)
 import os
 from urllib.error import URLError
 
@@ -51,19 +56,18 @@ class MillingDataLoad(PHMDataset):
     ) -> None:
         super().__init__(root, dataset_folder_name)
 
-
         self.dataset_path = self.root / self.dataset_folder_name
-
 
         if download:
             self.download()
 
         if not self._check_exists():
-            raise RuntimeError("Dataset not found. You can use download=True to download it")
+            raise RuntimeError(
+                "Dataset not found. You can use download=True to download it"
+            )
 
         self.data = self.load_mat()
 
-    
     def _check_exists(self) -> bool:
         return all(
             check_integrity(self.dataset_path / file_name)
@@ -78,14 +82,16 @@ class MillingDataLoad(PHMDataset):
 
         # pathlib makdir if not exists
         self.dataset_path.mkdir(parents=True, exist_ok=True)
-        
+
         # download files
         for filename, md5 in self.resources:
             for mirror in self.mirrors:
                 url = f"{mirror}{filename}"
                 try:
                     print(f"Downloading {url}")
-                    download_and_extract_archive(url, download_root=self.dataset_path, filename=filename, md5=md5)
+                    download_and_extract_archive(
+                        url, download_root=self.dataset_path, filename=filename, md5=md5
+                    )
                 except URLError as error:
                     print(f"Failed to download (trying next):\n{error}")
                     continue
@@ -97,7 +103,7 @@ class MillingDataLoad(PHMDataset):
 
     def load_mat(self) -> np.ndarray:
         """Load the mat file and return the data as a numpy array."""
-        data = sio.loadmat(self.dataset_path / 'mill.mat', struct_as_record=True)
+        data = sio.loadmat(self.dataset_path / "mill.mat", struct_as_record=True)
         print("Loading data!!!!")
         return data["mill"]
 
@@ -118,7 +124,7 @@ class MillingPrepMethodA(MillingDataLoad):
 
         download (bool): If True, the data will be downloaded from the NASA Prognostics Repository.
 
-        path_df_labels (Path, optional): Path to the dataframe with the labels (as a string). 
+        path_df_labels (Path, optional): Path to the dataframe with the labels (as a string).
             If not provided, the dataframe must be created.
 
         window_size (int): Size of the window to be used for the sliding window.
@@ -127,6 +133,7 @@ class MillingPrepMethodA(MillingDataLoad):
 
         cut_drop_list (list, optional): List of cut numbers to drop. cut_no 17 and 94 are erroneous.
     """
+
     def __init__(
         self,
         root: Path,
@@ -149,25 +156,30 @@ class MillingPrepMethodA(MillingDataLoad):
             self.path_df_labels = path_df_labels
         else:
             # path of pyphm source directory using pathlib
-            self.path_df_labels = Path(__file__).parent / "auxilary_metadata" / "milling_labels_with_tool_class.csv"
+            self.path_df_labels = (
+                Path(__file__).parent
+                / "auxilary_metadata"
+                / "milling_labels_with_tool_class.csv"
+            )
 
         # load the labels dataframe
         self.df_labels = pd.read_csv(self.path_df_labels)
 
         if self.cut_drop_list is not None:
-            self.df_labels.drop(self.cut_drop_list, inplace=True)  # drop the cuts that are bad
+            self.df_labels.drop(
+                self.cut_drop_list, inplace=True
+            )  # drop the cuts that are bad
 
         self.df_labels.reset_index(drop=True, inplace=True)  # reset the index
 
         self.field_names = self.data.dtype.names
-        
+
         self.signal_names = self.field_names[7:][::-1]
         print("type field names: ", type(self.field_names))
         print("type signal names: ", type(self.signal_names))
 
         print(self.field_names)
         print(self.signal_names)
-
 
     def create_labels(self):
         """Function that will create the label dataframe from the mill data set
@@ -221,7 +233,7 @@ class MillingPrepMethodA(MillingDataLoad):
         return df_labels
 
     def create_data_array(self, cut_no):
-        """Create an array from a cut sample.
+        """Create an array from an individual cut sample.
 
         Parameters
         ===========
@@ -331,6 +343,8 @@ class MillingPrepMethodA(MillingDataLoad):
 
         y_array : np.array
             Array of the labels for the cut samples. Shape of [no. samples, sample len, label/ids/times]
+            Use y[:,0,:], for example, to get the y in a shape of [no. samples, label/ids/times]
+            ( e.g. will be shape (no. samples, 3) )
 
         """
 
