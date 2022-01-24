@@ -7,7 +7,6 @@ from typing import Any, Callable, List, Optional, Tuple
 from .utils import (
     download_and_extract_archive,
     extract_archive,
-    verify_str_arg,
     check_integrity,
 )
 import os
@@ -50,8 +49,10 @@ class MillingDataLoad(PHMDataset):
         root: Path,
         dataset_folder_name: str = "milling",
         download: bool = False,
+        prep_method: str = "hahn",
         dataset_path: Path = None,
         data: np.ndarray = None,
+        **kwargs: Any,
     ) -> None:
         super().__init__(root, dataset_folder_name)
 
@@ -66,6 +67,7 @@ class MillingDataLoad(PHMDataset):
             )
 
         self.data = self.load_mat()
+        self.prep_method = prep_method
 
     def _check_exists(self) -> bool:
         return all(
@@ -106,6 +108,23 @@ class MillingDataLoad(PHMDataset):
         print("Loading data!!!!")
         return data["mill"]
 
+    def make_dataprep_class(self):
+        """
+        Return a function that takes a pandas dataframe and returns a numpy array.
+
+        Args:
+            prep_method (string): The method to use for data prep.
+                Currently only "hahn" is supported.
+
+        Returns:
+            A function that takes a pandas dataframe and returns a numpy array.
+
+        """
+        if self.prep_method == "hahn":
+            return MillingPrepMethodA(**self.kwargs)
+        else:
+            raise ValueError(f"Unknown prep method")
+
 
 class MillingPrepMethodA(MillingDataLoad):
     """
@@ -144,8 +163,9 @@ class MillingPrepMethodA(MillingDataLoad):
         window_size: int = 64,
         stride: int = 64,
         cut_drop_list: list = [17, 94],
+        **kwargs: Any,
     ) -> None:
-        super().__init__(root, dataset_folder_name, download, dataset_path, data)
+        super().__init__(root, dataset_folder_name, download, dataset_path, data, **kwargs)
 
         self.window_size = window_size  # size of the window
         self.stride = stride  # stride between windows

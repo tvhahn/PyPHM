@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple
-from .utils import download_and_extract_archive, extract_archive, verify_str_arg, check_integrity
+from .utils import download_and_extract_archive, extract_archive, check_integrity
 
 
 class PHMDataset:
