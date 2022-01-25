@@ -7,7 +7,6 @@ from typing import Any, Callable, List, Optional, Tuple
 from .utils import (
     download_and_extract_archive,
     extract_archive,
-    verify_str_arg,
     check_integrity,
 )
 import os
@@ -116,7 +115,7 @@ class MillingPrepMethodA(MillingDataLoad):
     by von Hahn and Mechefkse, 2021
 
     Args:
-        root (string): Root directory to place all the  data sets.
+        root (string): Root directory to place all the  data sets. (likely the raw data folder)
 
         dataset_folder_name (string): Name of folder containing raw data.
             This folder will be created in the root directory if not present.
@@ -138,14 +137,13 @@ class MillingPrepMethodA(MillingDataLoad):
         root: Path,
         dataset_folder_name: str = "milling",
         download: bool = False,
-        dataset_path: Path = None,
         data: np.ndarray = None,
         path_df_labels: Path = None,
         window_size: int = 64,
         stride: int = 64,
         cut_drop_list: list = [17, 94],
     ) -> None:
-        super().__init__(root, dataset_folder_name, download, dataset_path, data)
+        super().__init__(root, dataset_folder_name, download, data)
 
         self.window_size = window_size  # size of the window
         self.stride = stride  # stride between windows
