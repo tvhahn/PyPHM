@@ -41,8 +41,8 @@ import pathlib
 from pathlib import Path
 import re
 import tarfile
-import rarfile
-import py7zr
+import rarfile # needed for IMS dataset
+import py7zr # needed for IMS dataset
 import urllib
 import urllib.error
 import urllib.request
@@ -51,7 +51,6 @@ from typing import Any, Callable, List, Iterable, Optional, TypeVar, Dict, IO, T
 from urllib.parse import urlparse
 
 import requests
-# import torch
 from tqdm.auto import tqdm
 
 
