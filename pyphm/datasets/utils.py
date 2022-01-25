@@ -1,3 +1,35 @@
+"""
+BSD 3-Clause License
+
+The utils.py is Copyright (c) Soumith Chintala 2016, (from pytorch/vision)
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
 import bz2
 import gzip
 import hashlib
@@ -9,6 +41,8 @@ import pathlib
 from pathlib import Path
 import re
 import tarfile
+import rarfile
+import py7zr
 import urllib
 import urllib.error
 import urllib.request
@@ -277,6 +311,16 @@ def _extract_tar(from_path: str, to_path: str, compression: Optional[str]) -> No
         tar.extractall(to_path)
 
 
+def _extract_rar(from_path: str, to_path: str, compression: Optional[str]) -> None:
+    with rarfile.RarFile(from_path, f"r:{compression[1:]}" if compression else "r") as rar:
+        rar.extractall(to_path)
+
+
+def _extract_7z(from_path: str, to_path: str, compression: Optional[str]) -> None:
+    with py7zr.SevenZipFile(from_path, f"r:{compression[1:]}" if compression else "r") as z:
+        z.extractall(to_path)
+
+
 _ZIP_COMPRESSION_MAP: Dict[str, int] = {
     ".bz2": zipfile.ZIP_BZIP2,
     ".xz": zipfile.ZIP_LZMA,
@@ -293,6 +337,8 @@ def _extract_zip(from_path: str, to_path: str, compression: Optional[str]) -> No
 _ARCHIVE_EXTRACTORS: Dict[str, Callable[[str, str, Optional[str]], None]] = {
     ".tar": _extract_tar,
     ".zip": _extract_zip,
+    ".rar": _extract_rar,
+    ".7z": _extract_7z,
 }
 _COMPRESSED_FILE_OPENERS: Dict[str, Callable[..., IO]] = {
     ".bz2": bz2.open,
