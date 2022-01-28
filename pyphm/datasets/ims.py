@@ -46,6 +46,7 @@ class ImsDataLoad(PHMDataset):
         super().__init__(root, dataset_folder_name)
 
         self.dataset_path = self.root / self.dataset_folder_name
+        print(self.dataset_path)
 
         if download:
             self.download()
@@ -67,7 +68,7 @@ class ImsDataLoad(PHMDataset):
         """Download the UC Berkeley milling data if it doesn't exist already."""
 
         if self._check_exists():
-            print('Dataset already exists')
+            print('IMS.7z already exists.')
             return
 
         # pathlib makdir if not exists
@@ -82,6 +83,7 @@ class ImsDataLoad(PHMDataset):
                     download_and_extract_archive(
                         url, download_root=self.dataset_path, filename=filename, md5=md5
                     )
+                    extract_archive(self.dataset_path / '3rd_test.rar', remove_finished=True)
                 except URLError as error:
                     print(f"Failed to download (trying next):\n{error}")
                     continue
@@ -90,3 +92,13 @@ class ImsDataLoad(PHMDataset):
                 break
             else:
                 raise RuntimeError(f"Error downloading {filename}")
+
+    def extract(self) -> None:
+        """Extract the data set if it has already been dowloaded."""
+
+        if not self._check_exists():
+            print('IMS.7z does not exist. Please download.')
+            return
+
+        print('Extracting IMS.7z')
+        extract_archive(self.dataset_path / 'IMS.7z', remove_finished=False)
