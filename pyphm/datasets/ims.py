@@ -56,7 +56,13 @@ class ImsDataLoad(PHMDataset):
                 "Dataset not found. You can use download=True to download it"
             )
 
-        # self.data = self.load_mat()
+        # set the paths for the three experiment run folders
+        self.first_test_path = self.dataset_path / "1st_test"
+        self.second_test_path = self.dataset_path / "2nd_test"
+
+        # the third test is labelled as the "4th_test" in the IMS.7z archive
+        self.third_test_path = self.dataset_path / "4th_test/txt"
+
 
     def _check_exists(self) -> bool:
         return all(
@@ -68,7 +74,7 @@ class ImsDataLoad(PHMDataset):
         """Download the UC Berkeley milling data if it doesn't exist already."""
 
         if self._check_exists():
-            print('IMS.7z already exists.')
+            print("IMS.7z already exists.")
             return
 
         # pathlib makdir if not exists
@@ -83,7 +89,13 @@ class ImsDataLoad(PHMDataset):
                     download_and_extract_archive(
                         url, download_root=self.dataset_path, filename=filename, md5=md5
                     )
-                    extract_archive(self.dataset_path / '3rd_test.rar', remove_finished=True)
+
+                    # sequentially extract the .rar files
+                    rar_list = ["1st_test.rar", "2nd_test.rar", "3rd_test.rar"]
+                    for rar_file in rar_list:
+                        print(f'Extracting {rar_file}')
+                        extract_archive(self.dataset_path / rar_file, remove_finished=True)
+
                 except URLError as error:
                     print(f"Failed to download (trying next):\n{error}")
                     continue
@@ -97,8 +109,16 @@ class ImsDataLoad(PHMDataset):
         """Extract the data set if it has already been dowloaded."""
 
         if not self._check_exists():
-            print('IMS.7z does not exist. Please download.')
+            print("IMS.7z does not exist. Please download.")
             return
 
-        print('Extracting IMS.7z')
-        extract_archive(self.dataset_path / 'IMS.7z', remove_finished=False)
+        print("Extracting IMS.7z")
+
+        # start with the .7z file
+        extract_archive(self.dataset_path / "IMS.7z", remove_finished=False)
+
+        # sequentially extract the .rar files
+        rar_list = ["1st_test.rar", "2nd_test.rar", "3rd_test.rar"]
+        for rar_file in rar_list:
+            print(f'Extracting {rar_file}')
+            extract_archive(self.dataset_path / rar_file, remove_finished=True)
