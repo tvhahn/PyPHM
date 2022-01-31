@@ -35,6 +35,18 @@ class ImsDataLoad(PHMDataset):
         ("IMS.7z", "d3ca5a418c2ed0887d68bc3f91991f12"),
     ]
 
+    col_1st_names = [
+        "b1_ch1",
+        "b1_ch2",
+        "b2_ch3",
+        "b2_ch4",
+        "b3_ch5",
+        "b3_ch6",
+        "b4_ch7",
+        "b4_ch8",
+    ]
+    col_2nd_names = col_3rd_names = ["b1_ch1", "b1_ch2", "b2_ch3", "b2_ch4"]
+
     def __init__(
         self,
         root: Path,
@@ -57,12 +69,11 @@ class ImsDataLoad(PHMDataset):
             )
 
         # set the paths for the three experiment run folders
-        self.first_test_path = self.dataset_path / "1st_test"
-        self.second_test_path = self.dataset_path / "2nd_test"
+        self.path_1st_folder = self.dataset_path / "1st_test"
+        self.path_2nd_folder = self.dataset_path / "2nd_test"
 
         # the third test is labelled as the "4th_test" in the IMS.7z archive
-        self.third_test_path = self.dataset_path / "4th_test/txt"
-
+        self.path_3rd_folder = self.dataset_path / "4th_test/txt"
 
     def _check_exists(self) -> bool:
         return all(
@@ -93,8 +104,10 @@ class ImsDataLoad(PHMDataset):
                     # sequentially extract the .rar files
                     rar_list = ["1st_test.rar", "2nd_test.rar", "3rd_test.rar"]
                     for rar_file in rar_list:
-                        print(f'Extracting {rar_file}')
-                        extract_archive(self.dataset_path / rar_file, remove_finished=True)
+                        print(f"Extracting {rar_file}")
+                        extract_archive(
+                            self.dataset_path / rar_file, remove_finished=True
+                        )
 
                 except URLError as error:
                     print(f"Failed to download (trying next):\n{error}")
@@ -120,5 +133,5 @@ class ImsDataLoad(PHMDataset):
         # sequentially extract the .rar files
         rar_list = ["1st_test.rar", "2nd_test.rar", "3rd_test.rar"]
         for rar_file in rar_list:
-            print(f'Extracting {rar_file}')
+            print(f"Extracting {rar_file}")
             extract_archive(self.dataset_path / rar_file, remove_finished=True)
