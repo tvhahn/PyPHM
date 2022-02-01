@@ -141,7 +141,7 @@ class MillingPrepMethodA(MillingDataLoad):
         path_df_labels: Path = None,
         window_size: int = 64,
         stride: int = 64,
-        cut_drop_list: list = [17, 94],
+        cut_drop_list: List[int] = [17, 94],
     ) -> None:
         super().__init__(root, dataset_folder_name, download, data)
 

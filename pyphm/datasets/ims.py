@@ -54,6 +54,7 @@ class ImsDataLoad(PHMDataset):
         download: bool = False,
         dataset_path: Path = None,
         data: np.ndarray = None,
+        sample_freq: float = 20480.0,
     ) -> None:
         super().__init__(root, dataset_folder_name)
 
@@ -74,6 +75,8 @@ class ImsDataLoad(PHMDataset):
 
         # the third test is labelled as the "4th_test" in the IMS.7z archive
         self.path_3rd_folder = self.dataset_path / "4th_test/txt"
+
+        self.sample_freq = sample_freq
 
     def _check_exists(self) -> bool:
         return all(
@@ -135,3 +138,129 @@ class ImsDataLoad(PHMDataset):
         for rar_file in rar_list:
             print(f"Extracting {rar_file}")
             extract_archive(self.dataset_path / rar_file, remove_finished=True)
+
+    def process_raw_csv_ims(
+        self,
+        path_run_folder: Path,
+        file_name: str, # the name of the .csv file
+        sample_index: int,
+        run_no: int,
+        col_names: List[str],
+    ) -> None:
+        """Load an individual sample (.csv file) of the IMS data set."""
+
+        df = pd.read_csv(path_run_folder / file_name, sep="\t", names=col_names)
+
+        # df["id"] = "1_" + str(sample_index)
+        # df["run"] = run_no
+        # df["file"] = file_name
+        # df["time"] = np.linspace(0.0, len(df) / self.sample_freq, len(df))
+        if run_no % 10 == 0:
+            print(f"Processing {file_name} - run {run_no}")
+        return df
+
+        # return df[
+        #     [
+        #         "id",
+        #         "file",
+        #         "run",
+        #         "time",
+        #     ]
+        #     + col_names
+        # ]
+
+    def load_run_as_dataframe(self, 
+        run_no: int,
+        ) -> None:
+        """Load the three runs as individual dataframes."""
+
+        if run_no == 1:
+            col_names = self.col_1st_names
+            path_run_folder = self.path_1st_folder
+        elif run_no == 2:
+            col_names = self.col_2nd_names
+            path_run_folder = self.path_2nd_folder
+        else:
+            col_names = self.col_3rd_names
+            path_run_folder = self.path_3rd_folder
+
+        # get list of every file in the folder and sort by ascending date       
+        file_list = sorted(os.listdir(path_run_folder))
+        print("len file_list:", len(file_list))
+
+        df = pd.DataFrame() # instantiate empty dataframe
+        for i, file_name in enumerate(file_list):
+            if i % 50 == 0:
+                print(f"Processing {file_name}, i={i} - run {run_no}")
+            df = df.append(self.process_raw_csv_ims(path_run_folder, file_name, sample_index=i, run_no=run_no, col_names=col_names))
+
+        return df
+
+
+class ImsPrepMethodA(ImsDataLoad):
+    """
+    Class used to prepare the IMS bearing dataset before feature engining or machine learning.
+
+    Args:
+        root (string): Root directory to place all the  data sets. (likely the raw data folder)
+
+        dataset_folder_name (string): Name of folder containing raw data.
+            This folder will be created in the root directory if not present.
+
+        download (bool): If True, the data will be downloaded from the NASA Prognostics Repository.
+
+        path_df_labels (Path, optional): Path to the dataframe with the labels (as a string).
+            If not provided, the dataframe must be created.
+
+        window_size (int): Size of the window to be used for the sliding window.
+
+        stride (int): Size of the stride to be used for the sliding window.
+
+        cut_drop_list (list, optional): List of cut numbers to drop. cut_no 17 and 94 are erroneous.
+    """
+
+    def __init__(
+        self,
+        root: Path,
+        dataset_folder_name: str = "milling",
+        download: bool = False,
+        data: np.ndarray = None,
+        path_df_labels: Path = None,
+        window_size: int = 64,
+        stride: int = 64,
+        cut_drop_list: list = [17, 94],
+    ) -> None:
+        super().__init__(root, dataset_folder_name, download, data)
+
+        self.window_size = window_size  # size of the window
+        self.stride = stride  # stride between windows
+        self.cut_drop_list = cut_drop_list  # list of cut numbers to be dropped
+
+        if path_df_labels is not None:
+            self.path_df_labels = path_df_labels
+        else:
+            # path of pyphm source directory using pathlib
+            self.path_df_labels = (
+                Path(__file__).parent
+                / "auxilary_metadata"
+                / "milling_labels_with_tool_class.csv"
+            )
+
+        # load the labels dataframe
+        self.df_labels = pd.read_csv(self.path_df_labels)
+
+        if self.cut_drop_list is not None:
+            self.df_labels.drop(
+                self.cut_drop_list, inplace=True
+            )  # drop the cuts that are bad
+
+        self.df_labels.reset_index(drop=True, inplace=True)  # reset the index
+
+        self.field_names = self.data.dtype.names
+
+        self.signal_names = self.field_names[7:][::-1]
+        print("type field names: ", type(self.field_names))
+        print("type signal names: ", type(self.signal_names))
+
+        print(self.field_names)
+        print(self.signal_names)
