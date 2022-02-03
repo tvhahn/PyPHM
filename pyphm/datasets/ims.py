@@ -139,37 +139,28 @@ class ImsDataLoad(PHMDataset):
             print(f"Extracting {rar_file}")
             extract_archive(self.dataset_path / rar_file, remove_finished=True)
 
-    def process_raw_csv_ims(
-        self,
+    @staticmethod
+    def process_raw_csv(
         path_run_folder: Path,
         file_name: str, # the name of the .csv file
         sample_index: int,
         run_no: int,
-        col_names: List[str],
+        sample_freq: float = 20480.0,
     ) -> None:
         """Load an individual sample (.csv file) of the IMS data set."""
 
-        df = pd.read_csv(path_run_folder / file_name, sep="\t", names=col_names)
+        # load the .csv file
+        signals_array = np.loadtxt(path_run_folder / file_name, delimiter="\t")
 
-        # df["id"] = "1_" + str(sample_index)
-        # df["run"] = run_no
-        # df["file"] = file_name
-        # df["time"] = np.linspace(0.0, len(df) / self.sample_freq, len(df))
-        if run_no % 10 == 0:
-            print(f"Processing {file_name} - run {run_no}")
-        return df
+        id_list = [f'{run_no}_{sample_index}'] * len(signals_array)
+        run_list = [run_no] * len(signals_array)
+        file_list = [file_name] * len(signals_array)
+        time_step_array = np.linspace(0.0, len(signals_array) / sample_freq, len(signals_array))
 
-        # return df[
-        #     [
-        #         "id",
-        #         "file",
-        #         "run",
-        #         "time",
-        #     ]
-        #     + col_names
-        # ]
+        return signals_array, id_list, run_list, file_list, time_step_array
 
-    def load_run_as_dataframe(self, 
+
+    def load_run_as_df(self, 
         run_no: int,
         ) -> None:
         """Load the three runs as individual dataframes."""
@@ -188,11 +179,36 @@ class ImsDataLoad(PHMDataset):
         file_list = sorted(os.listdir(path_run_folder))
         print("len file_list:", len(file_list))
 
-        df = pd.DataFrame() # instantiate empty dataframe
+        # instantiate the empty lists
+        signals = []
+        ids = []
+        runs = []
+        files = []
+        time_steps = []
+
         for i, file_name in enumerate(file_list):
             if i % 50 == 0:
                 print(f"Processing {file_name}, i={i} - run {run_no}")
-            df = df.append(self.process_raw_csv_ims(path_run_folder, file_name, sample_index=i, run_no=run_no, col_names=col_names))
+            (
+            signals_array, 
+            id_list, 
+            run_list, 
+            file_list, 
+            time_step_array) = self.process_raw_csv(path_run_folder, file_name, i, run_no, sample_freq=20480.0)
+
+            # append or extend to the lists
+            signals.append(signals_array)
+            ids.extend(id_list)
+            runs.extend(run_list)
+            files.extend(file_list)
+            time_steps.append(time_step_array)
+
+        # create the dataframe, starting with the signals
+        df = pd.DataFrame(np.vstack(signals), columns=col_names)
+        df["id"] = ids
+        df["run"] = runs
+        df["file"] = files
+        df["time_step"] = np.hstack(time_steps)
 
         return df
 
