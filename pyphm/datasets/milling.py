@@ -54,7 +54,15 @@ class MillingDataLoad(PHMDataset):
     ) -> None:
         super().__init__(root, dataset_folder_name)
 
-        self.dataset_folder_path = self.root / self.dataset_folder_name
+        print("type(root) = ", type(self.root))
+        print("type(self.dataset_folder_name) = ", type(self.dataset_folder_name))
+
+        # self.dataset_folder_path = self.root / self.dataset_folder_name
+
+        if dataset_folder_path is None:
+            self.dataset_folder_path = self.root / self.dataset_folder_name
+        else:
+            self.dataset_folder_path = dataset_folder_path
 
         if download:
             self.download()
