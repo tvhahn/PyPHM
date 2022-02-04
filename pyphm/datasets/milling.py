@@ -48,8 +48,8 @@ class MillingDataLoad(PHMDataset):
         self,
         root: Path,
         dataset_folder_name: str = "milling",
+        data_file_name: str = "mill.mat",
         download: bool = False,
-        dataset_folder_path: Path = None,
         data: np.ndarray = None,
     ) -> None:
         super().__init__(root, dataset_folder_name)
@@ -59,18 +59,16 @@ class MillingDataLoad(PHMDataset):
 
         # self.dataset_folder_path = self.root / self.dataset_folder_name
 
-        if dataset_folder_path is None:
-            self.dataset_folder_path = self.root / self.dataset_folder_name
-        else:
-            self.dataset_folder_path = dataset_folder_path
+        self.dataset_folder_path = self.root / self.dataset_folder_name
+        self.data_file_name = data_file_name
+
 
         if download:
             self.download()
 
-        if not self._check_exists():
-            raise RuntimeError(
-                "Dataset not found. You can use download=True to download it"
-            )
+        data_file_path = self.dataset_folder_path / self.data_file_name
+        # assert that data_file_path exists
+        assert data_file_path.exists(), f"{data_file_path} does not exist."
 
         self.data = self.load_mat()
 
@@ -109,7 +107,7 @@ class MillingDataLoad(PHMDataset):
 
     def load_mat(self) -> np.ndarray:
         """Load the mat file and return the data as a numpy array."""
-        data = sio.loadmat(self.dataset_folder_path / "mill.mat", struct_as_record=True)
+        data = sio.loadmat(self.dataset_folder_path / self.data_file_name, struct_as_record=True)
         print("Loading data!!!!")
         return data["mill"]
 
@@ -125,7 +123,7 @@ class MillingPrepMethodA(MillingDataLoad):
     Args:
         root (string): Root directory to place all the  data sets. (likely the raw data folder)
 
-        dataset_folder_name (string): Name of folder containing raw data.
+        dataset_folder_name (string): Name of folder (within root) containing raw data.
             This folder will be created in the root directory if not present.
 
         download (bool): If True, the data will be downloaded from the NASA Prognostics Repository.
@@ -144,6 +142,8 @@ class MillingPrepMethodA(MillingDataLoad):
         self,
         root: Path,
         dataset_folder_name: str = "milling",
+        dataset_folder_path: Path = None,
+        data_file_name: str = "mill.mat",
         download: bool = False,
         data: np.ndarray = None,
         path_df_labels: Path = None,
@@ -151,7 +151,7 @@ class MillingPrepMethodA(MillingDataLoad):
         stride: int = 64,
         cut_drop_list: List[int] = [17, 94],
     ) -> None:
-        super().__init__(root, dataset_folder_name, download, data)
+        super().__init__(root, dataset_folder_name, data_file_name, download, data)
 
         self.window_size = window_size  # size of the window
         self.stride = stride  # stride between windows
