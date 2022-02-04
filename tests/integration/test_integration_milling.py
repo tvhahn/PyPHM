@@ -25,8 +25,8 @@ class TestMilling(unittest.TestCase):
             self.root / "milling/milling_truncated_results.csv.gz"
         )
 
-    def test_milling_data_prep(self):
-        """Test that the milling data prep works as expected."""
+    def test_load_run_as_df(self):
+        """Test the loading of an individual run as a dataframe."""
 
         # load the data and instantiate the data prep class
         mill = MillingPrepMethodA(
