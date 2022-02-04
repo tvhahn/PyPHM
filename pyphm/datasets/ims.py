@@ -66,10 +66,10 @@ class ImsDataLoad(PHMDataset):
         if download:
             self.download()
 
-        if not self._check_exists():
-            raise RuntimeError(
-                "Dataset not found. You can use download=True to download it"
-            )
+            if not self._check_exists():
+                raise RuntimeError(
+                    "Dataset not found. You can use download=True to download it"
+                )
 
         # set the paths for the three experiment run folders
         self.path_1st_folder = self.dataset_path / "1st_test"
@@ -162,13 +162,13 @@ class ImsDataLoad(PHMDataset):
             0.0, len(signals_array) / sample_freq, len(signals_array)
         )
 
-        df = pd.DataFrame(np.vstack(signals_array), columns=col_names)
+        df = pd.DataFrame(np.vstack(signals_array), columns=col_names, dtype=np.float32)
         df["id"] = id_list
         df["run"] = run_list
         df["file"] = file_list
         df["time_step"] = np.hstack(time_step_array)
 
-        return df
+        return df.astype({"id": str, "run": int, "file": str, "time_step": np.float32})
 
     def load_run_as_df(
         self,
@@ -219,7 +219,9 @@ class ImsDataLoad(PHMDataset):
             df_run = pool.map(self.process_raw_csv, file_info_list)
             df = pd.concat(df_run, ignore_index=True)
 
-        return df
+        col_names_ordered = ["id", "run", "file", "time_step"] + col_names
+
+        return df[col_names_ordered]
 
 
 class ImsPrepMethodA(ImsDataLoad):
