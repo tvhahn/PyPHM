@@ -54,14 +54,8 @@ class MillingDataLoad(PHMDataset):
     ) -> None:
         super().__init__(root, dataset_folder_name)
 
-        print("type(root) = ", type(self.root))
-        print("type(self.dataset_folder_name) = ", type(self.dataset_folder_name))
-
-        # self.dataset_folder_path = self.root / self.dataset_folder_name
-
         self.dataset_folder_path = self.root / self.dataset_folder_name
         self.data_file_name = data_file_name
-
 
         if download:
             self.download()
@@ -94,7 +88,10 @@ class MillingDataLoad(PHMDataset):
                 try:
                     print(f"Downloading {url}")
                     download_and_extract_archive(
-                        url, download_root=self.dataset_folder_path, filename=filename, md5=md5
+                        url,
+                        download_root=self.dataset_folder_path,
+                        filename=filename,
+                        md5=md5,
                     )
                 except URLError as error:
                     print(f"Failed to download (trying next):\n{error}")
@@ -107,8 +104,9 @@ class MillingDataLoad(PHMDataset):
 
     def load_mat(self) -> np.ndarray:
         """Load the mat file and return the data as a numpy array."""
-        data = sio.loadmat(self.dataset_folder_path / self.data_file_name, struct_as_record=True)
-        print("Loading data!!!!")
+        data = sio.loadmat(
+            self.dataset_folder_path / self.data_file_name, struct_as_record=True
+        )
         return data["mill"]
 
 
@@ -180,11 +178,6 @@ class MillingPrepMethodA(MillingDataLoad):
         self.field_names = self.data.dtype.names
 
         self.signal_names = self.field_names[7:][::-1]
-        print("type field names: ", type(self.field_names))
-        print("type signal names: ", type(self.signal_names))
-
-        print(self.field_names)
-        print(self.signal_names)
 
     def create_labels(self):
         """Function that will create the label dataframe from the mill data set

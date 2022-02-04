@@ -61,7 +61,6 @@ class ImsDataLoad(PHMDataset):
         super().__init__(root, dataset_folder_name)
 
         self.dataset_path = self.root / self.dataset_folder_name
-        print(self.dataset_path)
 
         if download:
             self.download()
@@ -189,7 +188,6 @@ class ImsDataLoad(PHMDataset):
 
         # get list of every file in the folder and sort by ascending date
         file_list = sorted(os.listdir(path_run_folder))
-        print("len file_list:", len(file_list))
 
         # create a list of dictionaries containing the metadata for each file
         file_info_list = []
@@ -211,8 +209,7 @@ class ImsDataLoad(PHMDataset):
         if n_jobs < 1:
             n_jobs = 1
 
-        print("n_jobs:", n_jobs)
-
+        # load the dataframes in parallel
         with mp.Pool(processes=n_jobs) as pool:
 
             # from https://stackoverflow.com/a/36590187
@@ -286,8 +283,4 @@ class ImsPrepMethodA(ImsDataLoad):
         self.field_names = self.data.dtype.names
 
         self.signal_names = self.field_names[7:][::-1]
-        print("type field names: ", type(self.field_names))
-        print("type signal names: ", type(self.signal_names))
 
-        print(self.field_names)
-        print(self.signal_names)

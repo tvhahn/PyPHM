@@ -12,7 +12,6 @@ class TestMilling(unittest.TestCase):
         self.root = (
             Path(__file__).parent / "fixtures"
         )
-        print("mill_data_path:", self.root)
 
         # path to milling_labels_with_tool_class_truncated.csv
         self.labels_path = (

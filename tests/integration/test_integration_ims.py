@@ -12,8 +12,6 @@ class TestIms(unittest.TestCase):
         self.root = (
             Path(__file__).parent / "fixtures"
         )
-        print("mill_data_path:", self.root)
-
 
         # path to ims_truncated_results.csv.gz
         self.results_path = (
