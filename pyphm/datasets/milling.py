@@ -49,12 +49,12 @@ class MillingDataLoad(PHMDataset):
         root: Path,
         dataset_folder_name: str = "milling",
         download: bool = False,
-        dataset_path: Path = None,
+        dataset_folder_path: Path = None,
         data: np.ndarray = None,
     ) -> None:
         super().__init__(root, dataset_folder_name)
 
-        self.dataset_path = self.root / self.dataset_folder_name
+        self.dataset_folder_path = self.root / self.dataset_folder_name
 
         if download:
             self.download()
@@ -68,7 +68,7 @@ class MillingDataLoad(PHMDataset):
 
     def _check_exists(self) -> bool:
         return all(
-            check_integrity(self.dataset_path / file_name)
+            check_integrity(self.dataset_folder_path / file_name)
             for file_name, _ in self.resources
         )
 
@@ -79,7 +79,7 @@ class MillingDataLoad(PHMDataset):
             return
 
         # pathlib makdir if not exists
-        self.dataset_path.mkdir(parents=True, exist_ok=True)
+        self.dataset_folder_path.mkdir(parents=True, exist_ok=True)
 
         # download files
         for filename, md5 in self.resources:
@@ -88,7 +88,7 @@ class MillingDataLoad(PHMDataset):
                 try:
                     print(f"Downloading {url}")
                     download_and_extract_archive(
-                        url, download_root=self.dataset_path, filename=filename, md5=md5
+                        url, download_root=self.dataset_folder_path, filename=filename, md5=md5
                     )
                 except URLError as error:
                     print(f"Failed to download (trying next):\n{error}")
@@ -101,7 +101,7 @@ class MillingDataLoad(PHMDataset):
 
     def load_mat(self) -> np.ndarray:
         """Load the mat file and return the data as a numpy array."""
-        data = sio.loadmat(self.dataset_path / "mill.mat", struct_as_record=True)
+        data = sio.loadmat(self.dataset_folder_path / "mill.mat", struct_as_record=True)
         print("Loading data!!!!")
         return data["mill"]
 
