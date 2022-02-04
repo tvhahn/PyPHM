@@ -3,39 +3,43 @@ import numpy as np
 from pathlib import Path
 import pandas as pd
 from pandas.testing import assert_frame_equal
-from src.datasets.milling import MillingDataPrep
+from pyphm.datasets.milling import MillingPrepMethodA
 
 
 class TestMilling(unittest.TestCase):
     def setUp(self):
         # path to mill_truncated.mat
-        self.mill_data_path = Path(__file__).parent / "fixtures/mill_truncated.mat"
+        self.path_data_raw_folder = (
+            Path(__file__).parent / "fixtures/milling/mill_truncated.mat"
+        )
         print("mill_data_path:", self.mill_data_path)
 
-        # path to labels_with_tool_class_truncated.csv
+        # path to milling_labels_with_tool_class_truncated.csv
         self.labels_path = (
-            Path(__file__).parent / "fixtures/labels_with_tool_class_truncated.csv"
+            Path(__file__).parent
+            / "fixtures/milling/milling_labels_with_tool_class_truncated.csv"
         )
 
         # path to milling_truncated_results.csv.gz
         self.results_path = (
-            Path(__file__).parent / "fixtures/milling_truncated_results.csv.gz"
+            Path(__file__).parent / "fixtures/milling/milling_truncated_results.csv.gz"
         )
 
     def test_milling_data_prep(self):
         """Test that the milling data prep works as expected."""
-        
+
         # load the data and instantiate the data prep class
-        milldata = MillingDataPrep(
-            self.mill_data_path,
-            path_df_labels=self.labels_path,
+        mill = MillingPrepMethodA(
+            self.path_data_raw_folder,
             window_size=64,
             stride=64,
-            cut_drop_list=None,
+            cut_drop_list=[17, 94],
+            path_df_labels=self.labels_path,
+            download=False,
         )
 
         # create the results dataframe
-        df = milldata.create_xy_dataframe()
+        df = mill.create_xy_dataframe()
         print("df.shape:", df.shape)
         print("df.columns:", df.columns)
 
