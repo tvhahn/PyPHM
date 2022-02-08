@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from .pyphm import PHMDataset
+import datetime
+import time
 import multiprocessing as mp
 from typing import Any, Callable, List, Optional, Tuple
 from .utils import (
@@ -146,28 +148,25 @@ class ImsDataLoad(PHMDataset):
 
         path_run_folder = file_info_dict["path_run_folder"]
         file_name = file_info_dict["file_name"]
-        sample_freq = file_info_dict["sample_freq"]
-        col_names = file_info_dict["col_names"]
         run_no = file_info_dict["run_no"]
         sample_index = file_info_dict["sample_index"]
 
         # load the .csv file
         signals_array = np.loadtxt(path_run_folder / file_name, delimiter="\t")
 
-        id_list = [f"{run_no}_{sample_index}"] * len(signals_array)
-        run_list = [run_no] * len(signals_array)
-        file_list = [file_name] * len(signals_array)
-        time_step_array = np.linspace(
-            0.0, len(signals_array) / sample_freq, len(signals_array)
-        )
+        # get the start time (for the first sample) and convert to unix timestamp
+        start_time_unix = time.mktime(
+            datetime.datetime.strptime(file_name, "%Y.%m.%d.%H.%M.%S").timetuple()
+            )
 
         # create dictionary with the signals_array, id_list, run_list, file_list, time_step_array
         data_dict = {
             "signals_array": signals_array,
-            "id_list": id_list,
-            "run_list": run_list,
-            "file_list": file_list,
-            "time_step_array": time_step_array,
+            "id": f"{run_no}_{sample_index}",
+            "run_no": run_no,
+            "file_name": file_name,
+            "sample_index": sample_index,
+            "start_time_unix": start_time_unix,
         }
 
         return data_dict
@@ -195,14 +194,19 @@ class ImsDataLoad(PHMDataset):
                 {
                     "path_run_folder": path_run_folder,
                     "file_name": file_name,
-                    "sample_freq": 20480.0,
                     "col_names": col_names,
-                    "run_no": 1,
+                    "run_no": run_no,
                     "sample_index": i,
                 }
             )
 
-        with mp.Pool(processes=6) as pool:
+        # get number of cpu cores
+        if n_jobs is None:
+            n_jobs = mp.cpu_count() - 2
+        if n_jobs < 1:
+            n_jobs = 1
+        print("n_jobs:", n_jobs)
+        with mp.Pool(processes=n_jobs) as pool:
 
             # from https://stackoverflow.com/a/36590187
             data_list = pool.map(self.process_raw_csv_to_dict, file_info_list)
@@ -210,7 +214,7 @@ class ImsDataLoad(PHMDataset):
         # store the data from data_list as a dictionary, with the key being the file name
         data_dict = {}
         for data_dict_i in data_list:
-            data_dict[data_dict_i['file_list'][0]] = data_dict_i
+            data_dict[data_dict_i['file_name']] = data_dict_i
         return data_dict
 
 
@@ -243,56 +247,56 @@ class ImsDataLoad(PHMDataset):
 
         return df.astype({"id": str, "run": int, "file": str, "time_step": np.float32})
 
-    # def load_run_as_df(
-    #     self,
-    #     run_no: int,
-    #     n_jobs: int = None,
-    # ) -> None:
-    #     """Load the three runs as individual dataframes."""
+    def load_run_as_df(
+        self,
+        run_no: int,
+        n_jobs: int = None,
+    ) -> None:
+        """Load the three runs as individual dataframes."""
 
-    #     if run_no == 1:
-    #         col_names = self.col_1st_names
-    #         path_run_folder = self.path_1st_folder
-    #     elif run_no == 2:
-    #         col_names = self.col_2nd_names
-    #         path_run_folder = self.path_2nd_folder
-    #     else:
-    #         col_names = self.col_3rd_names
-    #         path_run_folder = self.path_3rd_folder
+        if run_no == 1:
+            col_names = self.col_1st_names
+            path_run_folder = self.path_1st_folder
+        elif run_no == 2:
+            col_names = self.col_2nd_names
+            path_run_folder = self.path_2nd_folder
+        else:
+            col_names = self.col_3rd_names
+            path_run_folder = self.path_3rd_folder
 
-    #     # get list of every file in the folder and sort by ascending date
-    #     file_list = sorted(os.listdir(path_run_folder))
+        # get list of every file in the folder and sort by ascending date
+        file_list = sorted(os.listdir(path_run_folder))
 
-    #     # create a list of dictionaries containing the metadata for each file
-    #     file_info_list = []
-    #     for i, file_name in enumerate(sorted(os.listdir(path_run_folder))):
-    #         file_info_list.append(
-    #             {
-    #                 "path_run_folder": path_run_folder,
-    #                 "file_name": file_name,
-    #                 "sample_freq": self.sample_freq,
-    #                 "col_names": col_names,
-    #                 "run_no": run_no,
-    #                 "sample_index": i,
-    #             }
-    #         )
+        # create a list of dictionaries containing the metadata for each file
+        file_info_list = []
+        for i, file_name in enumerate(sorted(os.listdir(path_run_folder))):
+            file_info_list.append(
+                {
+                    "path_run_folder": path_run_folder,
+                    "file_name": file_name,
+                    "sample_freq": self.sample_freq,
+                    "col_names": col_names,
+                    "run_no": run_no,
+                    "sample_index": i,
+                }
+            )
 
-    #     # get number of cpu cores
-    #     if n_jobs is None:
-    #         n_jobs = mp.cpu_count() - 2
-    #     if n_jobs < 1:
-    #         n_jobs = 1
+        # get number of cpu cores
+        if n_jobs is None:
+            n_jobs = mp.cpu_count() - 2
+        if n_jobs < 1:
+            n_jobs = 1
 
-    #     # load the dataframes in parallel
-    #     with mp.Pool(processes=n_jobs) as pool:
+        # load the dataframes in parallel
+        with mp.Pool(processes=n_jobs) as pool:
 
-    #         # from https://stackoverflow.com/a/36590187
-    #         df_run = pool.map(self.process_raw_csv_to_df, file_info_list)
-    #         df = pd.concat(df_run, ignore_index=True)
+            # from https://stackoverflow.com/a/36590187
+            df_run = pool.map(self.process_raw_csv_to_df, file_info_list)
+            df = pd.concat(df_run, ignore_index=True)
 
-    #     col_names_ordered = ["id", "run", "file", "time_step"] + col_names
+        col_names_ordered = ["id", "run", "file", "time_step"] + col_names
 
-    #     return df[col_names_ordered]
+        return df[col_names_ordered]
 
 
 class ImsPrepMethodA(ImsDataLoad):
@@ -320,40 +324,46 @@ class ImsPrepMethodA(ImsDataLoad):
     def __init__(
         self,
         root: Path,
-        dataset_folder_name: str = "milling",
+        dataset_folder_name: str = "ims",
         download: bool = False,
-        data: np.ndarray = None,
-        path_df_labels: Path = None,
-        window_size: int = 64,
-        stride: int = 64,
-        cut_drop_list: list = [17, 94],
     ) -> None:
-        super().__init__(root, dataset_folder_name, download, data)
+        super().__init__(root, dataset_folder_name, download,)
 
-        self.window_size = window_size  # size of the window
-        self.stride = stride  # stride between windows
-        self.cut_drop_list = cut_drop_list  # list of cut numbers to be dropped
+    def create_xy_arrays(self, run_no: int = 1, n_jobs: int = None,) -> None:
 
-        if path_df_labels is not None:
-            self.path_df_labels = path_df_labels
-        else:
-            # path of pyphm source directory using pathlib
-            self.path_df_labels = (
-                Path(__file__).parent
-                / "auxilary_metadata"
-                / "milling_labels_with_tool_class.csv"
+        # create a list to store the x and y arrays
+        x = []  # instantiate X's
+        y_ids_runs_files_times_ctimes = []  # instantiate y's
+
+        # create the data dict storing the signals and metadata
+        data_dict = self.load_run_as_dict(run_no, n_jobs)
+
+        # get all the file names from the data_dict and sort them
+        file_names = sorted(data_dict.keys())
+
+
+        for i, file_name in enumerate(file_names):
+
+            x.append(data_dict[file_name]['signals_array'])
+            y_ids_runs_files_times_ctimes.append(
+                [
+                    data_dict[file_name]['id'],
+                    data_dict[file_name]['run_no'],
+                    data_dict[file_name]['file_name'],
+                    data_dict[file_name]['sample_index'],
+                    data_dict[file_name]['start_time_unix'],
+                ]
             )
 
-        # load the labels dataframe
-        self.df_labels = pd.read_csv(self.path_df_labels)
+        x = np.stack(x)
+        n_samples = x.shape[0]
+        n_signals = x.shape[2]
 
-        if self.cut_drop_list is not None:
-            self.df_labels.drop(
-                self.cut_drop_list, inplace=True
-            )  # drop the cuts that are bad
+        return x, np.stack(y_ids_runs_files_times_ctimes).reshape(-1, 5)
 
-        self.df_labels.reset_index(drop=True, inplace=True)  # reset the index
 
-        self.field_names = self.data.dtype.names
+    def create_xy_df(self, run_no: int = 1, n_jobs: int = None,) -> None:
+        return self.load_run_as_df(run_no, n_jobs)
 
-        self.signal_names = self.field_names[7:][::-1]
+
+  
