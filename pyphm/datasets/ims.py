@@ -141,7 +141,81 @@ class ImsDataLoad(PHMDataset):
             extract_archive(self.dataset_path / rar_file, remove_finished=True)
 
     @staticmethod
-    def process_raw_csv(file_info_dict) -> None:
+    def process_raw_csv_to_dict(file_info_dict) -> None:
+        """Load an individual sample (.csv file) of the IMS data set."""
+
+        path_run_folder = file_info_dict["path_run_folder"]
+        file_name = file_info_dict["file_name"]
+        sample_freq = file_info_dict["sample_freq"]
+        col_names = file_info_dict["col_names"]
+        run_no = file_info_dict["run_no"]
+        sample_index = file_info_dict["sample_index"]
+
+        # load the .csv file
+        signals_array = np.loadtxt(path_run_folder / file_name, delimiter="\t")
+
+        id_list = [f"{run_no}_{sample_index}"] * len(signals_array)
+        run_list = [run_no] * len(signals_array)
+        file_list = [file_name] * len(signals_array)
+        time_step_array = np.linspace(
+            0.0, len(signals_array) / sample_freq, len(signals_array)
+        )
+
+        # create dictionary with the signals_array, id_list, run_list, file_list, time_step_array
+        data_dict = {
+            "signals_array": signals_array,
+            "id_list": id_list,
+            "run_list": run_list,
+            "file_list": file_list,
+            "time_step_array": time_step_array,
+        }
+
+        return data_dict
+
+
+    def load_run_as_dict(
+        self,
+        run_no: int,
+        n_jobs: int = None,
+    ) -> None:
+        if run_no == 1:
+            col_names = self.col_1st_names
+            path_run_folder = self.path_1st_folder
+        elif run_no == 2:
+            col_names = self.col_2nd_names
+            path_run_folder = self.path_2nd_folder
+        else:
+            col_names = self.col_3rd_names
+            path_run_folder = self.path_3rd_folder
+
+        # create a list of dictionaries containing the metadata for each file
+        file_info_list = []
+        for i, file_name in enumerate(sorted(os.listdir(path_run_folder))):
+            file_info_list.append(
+                {
+                    "path_run_folder": path_run_folder,
+                    "file_name": file_name,
+                    "sample_freq": 20480.0,
+                    "col_names": col_names,
+                    "run_no": 1,
+                    "sample_index": i,
+                }
+            )
+
+        with mp.Pool(processes=6) as pool:
+
+            # from https://stackoverflow.com/a/36590187
+            data_list = pool.map(self.process_raw_csv_to_dict, file_info_list)
+
+        # store the data from data_list as a dictionary, with the key being the file name
+        data_dict = {}
+        for data_dict_i in data_list:
+            data_dict[data_dict_i['file_list'][0]] = data_dict_i
+        return data_dict
+
+
+    @staticmethod
+    def process_raw_csv_to_df(file_info_dict) -> None:
         """Load an individual sample (.csv file) of the IMS data set."""
 
         path_run_folder = file_info_dict["path_run_folder"]
@@ -213,7 +287,7 @@ class ImsDataLoad(PHMDataset):
         with mp.Pool(processes=n_jobs) as pool:
 
             # from https://stackoverflow.com/a/36590187
-            df_run = pool.map(self.process_raw_csv, file_info_list)
+            df_run = pool.map(self.process_raw_csv_to_df, file_info_list)
             df = pd.concat(df_run, ignore_index=True)
 
         col_names_ordered = ["id", "run", "file", "time_step"] + col_names
@@ -283,4 +357,3 @@ class ImsPrepMethodA(ImsDataLoad):
         self.field_names = self.data.dtype.names
 
         self.signal_names = self.field_names[7:][::-1]
-
