@@ -243,56 +243,56 @@ class ImsDataLoad(PHMDataset):
 
         return df.astype({"id": str, "run": int, "file": str, "time_step": np.float32})
 
-    def load_run_as_df(
-        self,
-        run_no: int,
-        n_jobs: int = None,
-    ) -> None:
-        """Load the three runs as individual dataframes."""
+    # def load_run_as_df(
+    #     self,
+    #     run_no: int,
+    #     n_jobs: int = None,
+    # ) -> None:
+    #     """Load the three runs as individual dataframes."""
 
-        if run_no == 1:
-            col_names = self.col_1st_names
-            path_run_folder = self.path_1st_folder
-        elif run_no == 2:
-            col_names = self.col_2nd_names
-            path_run_folder = self.path_2nd_folder
-        else:
-            col_names = self.col_3rd_names
-            path_run_folder = self.path_3rd_folder
+    #     if run_no == 1:
+    #         col_names = self.col_1st_names
+    #         path_run_folder = self.path_1st_folder
+    #     elif run_no == 2:
+    #         col_names = self.col_2nd_names
+    #         path_run_folder = self.path_2nd_folder
+    #     else:
+    #         col_names = self.col_3rd_names
+    #         path_run_folder = self.path_3rd_folder
 
-        # get list of every file in the folder and sort by ascending date
-        file_list = sorted(os.listdir(path_run_folder))
+    #     # get list of every file in the folder and sort by ascending date
+    #     file_list = sorted(os.listdir(path_run_folder))
 
-        # create a list of dictionaries containing the metadata for each file
-        file_info_list = []
-        for i, file_name in enumerate(sorted(os.listdir(path_run_folder))):
-            file_info_list.append(
-                {
-                    "path_run_folder": path_run_folder,
-                    "file_name": file_name,
-                    "sample_freq": self.sample_freq,
-                    "col_names": col_names,
-                    "run_no": run_no,
-                    "sample_index": i,
-                }
-            )
+    #     # create a list of dictionaries containing the metadata for each file
+    #     file_info_list = []
+    #     for i, file_name in enumerate(sorted(os.listdir(path_run_folder))):
+    #         file_info_list.append(
+    #             {
+    #                 "path_run_folder": path_run_folder,
+    #                 "file_name": file_name,
+    #                 "sample_freq": self.sample_freq,
+    #                 "col_names": col_names,
+    #                 "run_no": run_no,
+    #                 "sample_index": i,
+    #             }
+    #         )
 
-        # get number of cpu cores
-        if n_jobs is None:
-            n_jobs = mp.cpu_count() - 2
-        if n_jobs < 1:
-            n_jobs = 1
+    #     # get number of cpu cores
+    #     if n_jobs is None:
+    #         n_jobs = mp.cpu_count() - 2
+    #     if n_jobs < 1:
+    #         n_jobs = 1
 
-        # load the dataframes in parallel
-        with mp.Pool(processes=n_jobs) as pool:
+    #     # load the dataframes in parallel
+    #     with mp.Pool(processes=n_jobs) as pool:
 
-            # from https://stackoverflow.com/a/36590187
-            df_run = pool.map(self.process_raw_csv_to_df, file_info_list)
-            df = pd.concat(df_run, ignore_index=True)
+    #         # from https://stackoverflow.com/a/36590187
+    #         df_run = pool.map(self.process_raw_csv_to_df, file_info_list)
+    #         df = pd.concat(df_run, ignore_index=True)
 
-        col_names_ordered = ["id", "run", "file", "time_step"] + col_names
+    #     col_names_ordered = ["id", "run", "file", "time_step"] + col_names
 
-        return df[col_names_ordered]
+    #     return df[col_names_ordered]
 
 
 class ImsPrepMethodA(ImsDataLoad):
