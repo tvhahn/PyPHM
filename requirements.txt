@@ -8,3 +8,4 @@ py7zr
 rarfile
 tqdm
 scipy
+requests
