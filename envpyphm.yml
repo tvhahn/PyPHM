@@ -1,0 +1,23 @@
+name: featstore
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - conda
+  - mamba
+  - jupyterlab
+  - scipy
+  - matplotlib
+  - seaborn
+  - pandas
+  - scikit-learn
+  - py7zr
+  - rarfile 
+  - pytables
+  - requests 
+  - xgboost 
+  - black
+  - imbalanced-learn
+  - pip:
+    - tsfresh
+

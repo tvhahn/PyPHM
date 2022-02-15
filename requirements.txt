@@ -9,3 +9,5 @@ rarfile
 tqdm
 scipy
 requests
+h5py
+tables
