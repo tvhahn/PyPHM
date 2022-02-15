@@ -7,7 +7,7 @@ from typing import Any, Callable, List, Optional, Tuple
 from .utils import (
     download_and_extract_archive,
     extract_archive,
-    check_integrity,
+    check_integrity, download_url,
 )
 import os
 from urllib.error import URLError
@@ -22,7 +22,7 @@ Also contains helper functions associated with the milling data set.
 ###############################################################################
 # Data Prep Classes
 ###############################################################################
-class MillingDataLoad(PHMDataset):
+class AirbusDataLoad(PHMDataset):
     """
     Load the UC Berkely milling data set from .mat file, and download if necessary.
 
@@ -37,34 +37,33 @@ class MillingDataLoad(PHMDataset):
     """
 
     mirrors = [
-        "https://ti.arc.nasa.gov/m/project/prognostic-repository/",
+        "https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/415151/",
     ]
 
     resources = [
-        ("mill.zip", "81d821fdef812183a7d38b6f83f7cefa"),
+        ("dftrain.h5", None),
+        ("dfvalid.h5", None),
+        ("dfvalid_groundtruth.csv", None),
     ]
 
     def __init__(
         self,
         root: Path,
-        dataset_folder_name: str = "milling",
-        data_file_name: str = "mill.mat",
+        dataset_folder_name: str = "airbus",
         download: bool = False,
         data: np.ndarray = None,
     ) -> None:
         super().__init__(root, dataset_folder_name)
 
         self.dataset_folder_path = self.root / self.dataset_folder_name
-        self.data_file_name = data_file_name
 
         if download:
             self.download()
 
-        data_file_path = self.dataset_folder_path / self.data_file_name
-        # assert that data_file_path exists
-        assert data_file_path.exists(), f"{data_file_path} does not exist."
+        # data_file_path = self.dataset_folder_path / self.data_file_name
+        # # assert that data_file_path exists
+        # assert data_file_path.exists(), f"{data_file_path} does not exist."
 
-        self.data = self.load_mat()
 
     def _check_exists(self) -> bool:
         return all(
@@ -87,12 +86,9 @@ class MillingDataLoad(PHMDataset):
                 url = f"{mirror}{filename}"
                 try:
                     print(f"Downloading {url}")
-                    download_and_extract_archive(
-                        url,
-                        download_root=self.dataset_folder_path,
-                        filename=filename,
-                        md5=md5,
-                    )
+
+                    download_url(url, self.dataset_folder_path, filename, md5)
+
                 except URLError as error:
                     print(f"Failed to download (trying next):\n{error}")
                     continue
@@ -110,7 +106,7 @@ class MillingDataLoad(PHMDataset):
         return data["mill"]
 
 
-class MillingPrepMethodA(MillingDataLoad):
+class AirbusPrepMethodA(AirbusDataLoad):
     """
     Class used to prepare the UC Berkeley milling dataset before feature engining or machine learning.
     Method is described in the paper:
