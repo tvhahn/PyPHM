@@ -7,7 +7,8 @@ from typing import Any, Callable, List, Optional, Tuple
 from .utils import (
     download_and_extract_archive,
     extract_archive,
-    check_integrity, download_url,
+    check_integrity,
+    download_url,
 )
 import os
 from urllib.error import URLError
@@ -51,11 +52,21 @@ class AirbusDataLoad(PHMDataset):
         root: Path,
         dataset_folder_name: str = "airbus",
         download: bool = False,
-        data: np.ndarray = None,
+        path_df_labels: Path = None,
     ) -> None:
         super().__init__(root, dataset_folder_name)
 
         self.dataset_folder_path = self.root / self.dataset_folder_name
+
+        if path_df_labels is not None:
+            self.path_df_labels = path_df_labels
+        else:
+            # path of pyphm source directory using pathlib
+            self.path_df_labels = (
+                Path(__file__).parent
+                / "auxilary_metadata"
+                / "airbus_dfvalid_groundtruth.csv"
+            )
 
         if download:
             self.download()
@@ -64,7 +75,6 @@ class AirbusDataLoad(PHMDataset):
         # # assert that data_file_path exists
         # assert data_file_path.exists(), f"{data_file_path} does not exist."
 
-
     def _check_exists(self) -> bool:
         return all(
             check_integrity(self.dataset_folder_path / file_name)
@@ -72,7 +82,7 @@ class AirbusDataLoad(PHMDataset):
         )
 
     def download(self) -> None:
-        """Download the UC Berkeley milling data if it doesn't exist already."""
+        """Download the Airbus Helicopter Accelerometer Dataset if it doesn't exist already."""
 
         if self._check_exists():
             return
@@ -98,12 +108,34 @@ class AirbusDataLoad(PHMDataset):
             else:
                 raise RuntimeError(f"Error downloading {filename}")
 
-    def load_mat(self) -> np.ndarray:
-        """Load the mat file and return the data as a numpy array."""
-        data = sio.loadmat(
-            self.dataset_folder_path / self.data_file_name, struct_as_record=True
-        )
-        return data["mill"]
+    def load_df(
+        self,
+        train_or_val: str = "train",
+    ) -> None:
+        """Load the h5 file as df."""
+
+        if train_or_val == "train":
+            df = pd.read_hdf(self.dataset_folder_path / "dftrain.h5", "dftrain")
+
+            # add y column of all zeros (indicating no anomaly)
+            df["y"] = 0
+
+        else:  # val dataset
+            df = pd.read_hdf(self.dataset_folder_path / "dfvalid.h5", "dfvalid")
+
+            # load the dfvalid_groundtruth.csv as dataframe
+            df_labels = pd.read_csv(
+                self.path_df_labels,
+                dtype={"seqID": int, "anomaly": int},
+            )
+
+            # append the anomaly label to the df_val dataframe
+            df = df.merge(df_labels, left_index=True, right_on="seqID")
+
+            # drop the seqID column and rename the anomaly column to y
+            df = df.drop("seqID", axis=1).rename(columns={"anomaly": "y"})
+
+        return df
 
 
 class AirbusPrepMethodA(AirbusDataLoad):
