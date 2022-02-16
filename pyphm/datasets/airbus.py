@@ -14,9 +14,9 @@ import os
 from urllib.error import URLError
 
 """
-Contains the data prep class for the UC-Berkely milling data set.
+Contains the data prep class for the Airbus Helicopter Accelerometer Dataset.
 
-Also contains helper functions associated with the milling data set.
+Also contains helper functions associated with the dataset.
 """
 
 
@@ -25,7 +25,7 @@ Also contains helper functions associated with the milling data set.
 ###############################################################################
 class AirbusDataLoad(PHMDataset):
     """
-    Load the UC Berkely milling data set from .mat file, and download if necessary.
+    Airbus Helicopter Accelerometer Dataset from .h5 file, and download if necessary.
 
     Args:
         root (string): Root directory to place all the  data sets.
@@ -33,7 +33,7 @@ class AirbusDataLoad(PHMDataset):
         dataset_folder_name (string): Name of folder containing raw data.
             This folder will be created in the root directory if not present.
 
-        download (bool): If True, the data will be downloaded from the NASA Prognostics Repository.
+        download (bool): If True, the data will be downloaded from ETH Zurich.
 
     """
 
@@ -70,10 +70,6 @@ class AirbusDataLoad(PHMDataset):
 
         if download:
             self.download()
-
-        # data_file_path = self.dataset_folder_path / self.data_file_name
-        # # assert that data_file_path exists
-        # assert data_file_path.exists(), f"{data_file_path} does not exist."
 
     def _check_exists(self) -> bool:
         return all(
@@ -140,11 +136,11 @@ class AirbusDataLoad(PHMDataset):
 
 class AirbusPrepMethodA(AirbusDataLoad):
     """
-    Class used to prepare the UC Berkeley milling dataset before feature engining or machine learning.
+    Class used to prepare the Airbus Helicopter Accelerometer Dataset before feature engining or machine learning.
     Method is described in the paper:
 
-    `Self-supervised learning for tool wear monitoring with a disentangled-variational-autoencoder`
-    by von Hahn and Mechefkse, 2021
+    `Temporal signals to images: Monitoring the condition of industrial assets with deep learning image processing algorithms`
+    by Garcia et al., 2021 - https://arxiv.org/abs/2005.07031
 
     Args:
         root (string): Root directory to place all the  data sets. (likely the raw data folder)
@@ -152,16 +148,15 @@ class AirbusPrepMethodA(AirbusDataLoad):
         dataset_folder_name (string): Name of folder (within root) containing raw data.
             This folder will be created in the root directory if not present.
 
-        download (bool): If True, the data will be downloaded from the NASA Prognostics Repository.
+        download (bool): If True, the data will be downloaded from the ETH Zurich website.
 
-        path_df_labels (Path, optional): Path to the dataframe with the labels (as a string).
-            If not provided, the dataframe must be created.
+        path_df_labels (Path, optional): Path to the csv with the labels. If not provided, it
+            will default to airbus_dfvalid_groundtruth.csv in the auxilary_metadata folder.
 
         window_size (int): Size of the window to be used for the sliding window.
 
         stride (int): Size of the stride to be used for the sliding window.
 
-        cut_drop_list (list, optional): List of cut numbers to drop. cut_no 17 and 94 are erroneous.
     """
 
     def __init__(
@@ -175,7 +170,6 @@ class AirbusPrepMethodA(AirbusDataLoad):
         path_df_labels: Path = None,
         window_size: int = 64,
         stride: int = 64,
-        cut_drop_list: List[int] = [17, 94],
     ) -> None:
         super().__init__(root, dataset_folder_name, data_file_name, download, data)
 
