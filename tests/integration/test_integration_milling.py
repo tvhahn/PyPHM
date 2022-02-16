@@ -7,6 +7,12 @@ from pyphm.datasets.milling import MillingPrepMethodA
 
 
 class TestMilling(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        print('setUpClass')
+
+
     def setUp(self):
         # path to mill_truncated.mat
         self.root = (

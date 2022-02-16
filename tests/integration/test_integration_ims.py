@@ -7,6 +7,11 @@ from pyphm.datasets.ims import ImsDataLoad
 
 
 class TestIms(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        print('setUpClass')
+
     def setUp(self):
         # path to mill_truncated.mat
         self.root = (
@@ -17,6 +22,10 @@ class TestIms(unittest.TestCase):
         self.results_path = (
             self.root / "ims/ims_truncated_results.csv.gz"
         )
+
+    def tearDown(self):
+        print('tearDown')
+        pass
 
     def test_milling_data_prep(self):
         """Test that the milling data prep works as expected."""

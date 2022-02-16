@@ -162,198 +162,19 @@ class AirbusPrepMethodA(AirbusDataLoad):
     def __init__(
         self,
         root: Path,
-        dataset_folder_name: str = "milling",
-        dataset_folder_path: Path = None,
-        data_file_name: str = "mill.mat",
+        dataset_folder_name: str = "airbus",
         download: bool = False,
-        data: np.ndarray = None,
         path_df_labels: Path = None,
         window_size: int = 64,
         stride: int = 64,
     ) -> None:
-        super().__init__(root, dataset_folder_name, data_file_name, download, data)
+        super().__init__(root, dataset_folder_name, download, path_df_labels)
 
         self.window_size = window_size  # size of the window
         self.stride = stride  # stride between windows
-        self.cut_drop_list = cut_drop_list  # list of cut numbers to be dropped
 
-        if path_df_labels is not None:
-            self.path_df_labels = path_df_labels
-        else:
-            # path of pyphm source directory using pathlib
-            self.path_df_labels = (
-                Path(__file__).parent
-                / "auxilary_metadata"
-                / "milling_labels_with_tool_class.csv"
-            )
 
-        # load the labels dataframe
-        self.df_labels = pd.read_csv(self.path_df_labels)
-
-        if self.cut_drop_list is not None:
-            self.df_labels.drop(
-                self.cut_drop_list, inplace=True
-            )  # drop the cuts that are bad
-
-        self.df_labels.reset_index(drop=True, inplace=True)  # reset the index
-
-        self.field_names = self.data.dtype.names
-
-        self.signal_names = self.field_names[7:][::-1]
-
-    def create_labels(self):
-        """Function that will create the label dataframe from the mill data set
-
-        Only needed if the dataframe with the labels is not provided.
-        """
-
-        # create empty dataframe for the labels
-        df_labels = pd.DataFrame()
-
-        # get the labels from the original .mat file and put in dataframe
-        for i in range(7):
-            # list for storing the label data for each field
-            x = []
-
-            # iterate through each of the unique cuts
-            for j in range(167):
-                x.append(self.data[0, j][i][0][0])
-            x = np.array(x)
-            df_labels[str(i)] = x
-
-        # add column names to the dataframe
-        df_labels.columns = self.field_names[0:7]
-
-        # create a column with the unique cut number
-        df_labels["cut_no"] = [i for i in range(167)]
-
-        def tool_state(cols):
-            """Add the label to the cut.
-
-            Categories are:
-            Healthy Sate (label=0): 0~0.2mm flank wear
-            Degredation State (label=1): 0.2~0.7mm flank wear
-            Failure State (label=2): >0.7mm flank wear
-            """
-            # pass in the tool wear, VB, column
-            vb = cols
-
-            if vb < 0.2:
-                return 0
-            elif vb >= 0.2 and vb < 0.7:
-                return 1
-            elif pd.isnull(vb):
-                pass
-            else:
-                return 2
-
-        # apply the label to the dataframe
-        df_labels["tool_class"] = df_labels["VB"].apply(tool_state)
-
-        return df_labels
-
-    def create_data_array(self, cut_no):
-        """Create an array from an individual cut sample.
-
-        Parameters
-        ===========
-        cut_no : int
-            Index of the cut to be used.
-
-        Returns
-        ===========
-        sub_cut_array : np.array
-            Array of the cut samples. Shape of [no. samples, sample len, features/sample]
-
-        sub_cut_labels : np.array
-            Array of the labels for the cut samples. Shape of [# samples, # features/sample]
-
-        """
-
-        assert (
-            cut_no in self.df_labels["cut_no"].values
-        ), "Cut number must be in the dataframe"
-
-        # create a numpy array of the cut
-        # with a final array shape like [no. cuts, len cuts, no. signals]
-        cut = self.data[0, cut_no]
-        for i, signal_name in enumerate(self.signal_names):
-            if i == 0:
-                cut_array = cut[signal_name].reshape((9000, 1))
-            else:
-                cut_array = np.concatenate(
-                    (cut_array, cut[signal_name].reshape((9000, 1))), axis=1
-                )
-
-        # select the start and end of the cut
-        start = self.df_labels[self.df_labels["cut_no"] == cut_no][
-            "window_start"
-        ].values[0]
-        end = self.df_labels[self.df_labels["cut_no"] == cut_no]["window_end"].values[0]
-        cut_array = cut_array[start:end, :]
-
-        # instantiate the "temporary" lists to store the sub-cuts and metadata
-        sub_cut_list = []
-        sub_cut_id_list = []
-        sub_cut_label_list = []
-
-        # get the labels for the cut
-        label = self.df_labels[self.df_labels["cut_no"] == cut_no]["tool_class"].values[
-            0
-        ]
-
-        # fit the strided windows into the dummy_array until the length
-        # of the window does not equal the proper length (better way to do this???)
-        for i in range(cut_array.shape[0]):
-            windowed_signal = cut_array[
-                i * self.stride : i * self.stride + self.window_size
-            ]
-
-            # if the windowed signal is the proper length, add it to the list
-            if windowed_signal.shape == (self.window_size, 6):
-                sub_cut_list.append(windowed_signal)
-
-                # create sub_cut_id fstring to keep track of the cut_id and the window_id
-                sub_cut_id_list.append(f"{cut_no}_{i}")
-
-                # create the sub_cut_label and append it to the list
-                sub_cut_label_list.append(int(label))
-
-            else:
-                break
-
-        sub_cut_array = np.array(sub_cut_list)
-
-        sub_cut_ids = np.expand_dims(np.array(sub_cut_id_list, dtype=str), axis=1)
-        sub_cut_ids = np.repeat(sub_cut_ids, sub_cut_array.shape[1], axis=1)
-
-        sub_cut_labels = np.expand_dims(np.array(sub_cut_label_list, dtype=int), axis=1)
-        sub_cut_labels = np.repeat(sub_cut_labels, sub_cut_array.shape[1], axis=1)
-
-        # take the length of the signals in the sub_cut_array
-        # and divide it by the frequency (250 Hz) to get the time (seconds) of each sub-cut
-        sub_cut_times = np.expand_dims(
-            np.arange(0, sub_cut_array.shape[1]) / 250.0, axis=0
-        )
-        sub_cut_times = np.repeat(
-            sub_cut_times,
-            sub_cut_array.shape[0],
-            axis=0,
-        )
-
-        sub_cut_labels_ids_times = np.stack(
-            (sub_cut_labels, sub_cut_ids, sub_cut_times), axis=2
-        )
-
-        return (
-            sub_cut_array,
-            sub_cut_labels,
-            sub_cut_ids,
-            sub_cut_times,
-            sub_cut_labels_ids_times,
-        )
-
-    def create_xy_arrays(self):
+    def create_xy_arrays(self, train_or_val: str = "train"):
         """Create the x and y arrays used in deep learning.
 
         Returns
@@ -368,24 +189,53 @@ class AirbusPrepMethodA(AirbusDataLoad):
 
         """
 
-        # create a list to store the x and y arrays
-        x = []  # instantiate X's
-        y_labels_ids_times = []  # instantiate y's
+        # load the dataframe
+        df = self.load_df(train_or_val)
 
-        # iterate throught the df_labels
-        for i in self.df_labels.itertuples():
-            (
-                sub_cut_array,
-                sub_cut_labels,
-                sub_cut_ids,
-                sub_cut_times,
-                sub_cut_labels_ids_times,
-            ) = self.create_data_array(i.cut_no)
+        x = df.drop('y', axis=1).to_numpy()
+        y = df['y'].to_numpy()
 
-            x.append(sub_cut_array)
-            y_labels_ids_times.append(sub_cut_labels_ids_times)
+        # instantiate the "temporary" lists to store the windows and labels
+        window_list = []
+        window_id_list = []
+        window_label_list = []
+        window_label_id_list = []
 
-        return np.vstack(x), np.vstack(y_labels_ids_times)
+        # fit the strided windows into the dummy_array until the length
+        # of the window does not equal the proper length (better way to do this???)
+
+        n_signals = x.shape[0]
+        len_signal = x.shape[1]
+        print(f"n_signals: {n_signals}")
+        print(f"len_signal: {len_signal}")
+
+
+        for i in range(len_signal):
+            windowed_signal = x[:,
+                i * self.stride : i * self.stride + self.window_size
+            ]
+
+
+            # if the windowed signal is the proper length, add it to the list
+            if windowed_signal.shape == (n_signals, self.window_size):
+                window_list.append(windowed_signal)
+
+                window_id_list.append(np.array([str(j) + "_" + str (k) for j, k in list(zip(list(range(0,n_signals)), [i] * n_signals))]))
+
+                window_label_list.append(y)
+
+            else:
+                break
+
+        print(np.shape(np.array(window_list)))  # shape of the windowed signal
+
+        window_id_array = np.expand_dims(np.array(window_id_list).reshape(-1), axis=1)
+        window_label_array = np.expand_dims(np.array(window_label_list).reshape(-1), axis=1) 
+
+        x = np.vstack(window_list,)
+        y = np.hstack((window_label_array, window_id_array))
+        return x, y
+ 
 
     def create_xy_dataframe(self):
         """
