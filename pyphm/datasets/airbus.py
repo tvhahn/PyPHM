@@ -173,82 +173,88 @@ class AirbusPrepMethodA(AirbusDataLoad):
         self.window_size = window_size  # size of the window
         self.stride = stride  # stride between windows
 
-
     def create_xy_arrays(self, train_or_val: str = "train"):
         """Create the x and y arrays used in deep learning.
 
-        Returns
-        ===========
-        x_array : np.array
-            Array of the cut samples. Shape of [no. samples, sample len, features/sample]
+        Parameters
+        ----------
+        train_or_val : str
+            Either 'train' or 'val' to indicate which dataset to use. Default is 'train'.
 
-        y_array : np.array
-            Array of the labels for the cut samples. Shape of [no. samples, sample len, label/ids/times]
-            Use y[:,0,:], for example, to get the y in a shape of [no. samples, label/ids/times]
-            ( e.g. will be shape (no. samples, 3) )
+        Returns
+        -------
+        x : ndarray
+            Array of the signals (samples). Shape: (n_samples, n_windows, window_size)
+
+        y : ndarray
+            Array of the labels/meta-data for each signals. Shape: (n_samples, n_windows, window_size, label_columns)
+            The label_columns (in order) are:
+                time_increments (int) -- the index of each time increment in the window. e.g. (0, 1, 2, ...)
+                sample_index (int) -- the index of each sample
+                window_index (int) -- the index of each window
+                label (int) -- the label of each windowed sample (0 for normal, 1 for anomaly)
 
         """
 
         # load the dataframe
         df = self.load_df(train_or_val)
 
-        x = df.drop('y', axis=1).to_numpy()
-        y = df['y'].to_numpy()
+        x = df.drop("y", axis=1).to_numpy()
+        y = df["y"].to_numpy()
 
         # instantiate the "temporary" lists to store the windows and labels
         window_list = []
-        window_id_list = []
-        window_label_list = []
-        signal_index_list = []
-        time_index_list = []
-        window_label_id_list = []
-        y_sig_win_label_list = []
+        y_sample_win_label_list = []
 
-        # fit the strided windows into the dummy_array until the length
+        n_samples = x.shape[0]
+        len_sample = x.shape[1]
+
+        # fit the strided windows into the temporary list until the length
         # of the window does not equal the proper length (better way to do this???)
-
-        n_signals = x.shape[0]
-        len_signal = x.shape[1]
-        print(f"n_signals: {n_signals}")
-        print(f"len_signal: {len_signal}")
-
-
-        for window_i in range(len_signal):
-            windowed_signal = x[:,
-                window_i * self.stride : window_i * self.stride + self.window_size
+        for window_i in range(len_sample):
+            windowed_signal = x[
+                :, window_i * self.stride : window_i * self.stride + self.window_size
             ]
 
-
             # if the windowed signal is the proper length, add it to the list
-            if windowed_signal.shape == (n_signals, self.window_size):
+            if windowed_signal.shape == (n_samples, self.window_size):
                 window_list.append(windowed_signal)
 
-                y_sig_win_label_list.append([(int(signal_indices), int(window_indices), int(ys)) for signal_indices, window_indices, ys in list(zip(list(range(0,n_signals)), [window_i] * n_signals, y))])
-
-                # window_label_list.append(y)
+                y_sample_win_label_list.append(
+                    [
+                        (int(sample_indices), int(window_indices), int(ys))
+                        for sample_indices, window_indices, ys in list(
+                            zip(list(range(0, n_samples)), [window_i] * n_samples, y)
+                        )
+                    ]
+                )
 
             else:
                 break
 
-        print(np.shape(np.array(window_list)))  # shape of the windowed signal
+        x = np.array(window_list).reshape(n_samples, -1, self.window_size)
 
-        x = np.array(window_list)
+        y_sample_win_label_array = np.array(y_sample_win_label_list)[:, :, np.newaxis].repeat(
+            self.window_size, axis=2
+        )
 
-        y_sig_win_label_list = np.array(y_sig_win_label_list)[:, :, np.newaxis].repeat(self.window_size, axis=2)
+        time_index = (
+            np.arange(0, self.window_size, 1)[np.newaxis, np.newaxis, :]
+            .repeat(n_samples, axis=1)
+            .repeat(x.shape[1], axis=0)[:, :, :, np.newaxis]
+        )
 
-        time_index = np.arange(0, self.window_size, 1)[np.newaxis, np.newaxis, :].repeat(n_signals, axis=1).repeat(x.shape[0], axis=0)[:, :, :, np.newaxis]
-
-
-        y_time_sig_win_label_array = np.concatenate((time_index, y_sig_win_label_list), axis=3)
+        y_time_sample_win_label_array = np.concatenate(
+            (time_index, y_sample_win_label_array), axis=3
+        ).reshape(n_samples, -1, self.window_size, 4)
         # window_id_array = np.expand_dims(np.array(window_id_list).reshape(-1), axis=1)
-        # window_label_array = np.expand_dims(np.array(window_label_list).reshape(-1), axis=1) 
+        # window_label_array = np.expand_dims(np.array(window_label_list).reshape(-1), axis=1)
 
         # x = np.vstack(window_list,)
-        
 
         # y = np.hstack((window_label_array, window_id_array))
-        return x, y_time_sig_win_label_array
- 
+        # return np.vstack(x), np.vstack(y_time_sig_win_label_array)
+        return x, y_time_sample_win_label_array
 
     def create_xy_dataframe(self):
         """
