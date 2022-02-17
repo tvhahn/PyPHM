@@ -202,6 +202,7 @@ class AirbusPrepMethodA(AirbusDataLoad):
         signal_index_list = []
         time_index_list = []
         window_label_id_list = []
+        y_sig_win_label_list = []
 
         # fit the strided windows into the dummy_array until the length
         # of the window does not equal the proper length (better way to do this???)
@@ -222,23 +223,31 @@ class AirbusPrepMethodA(AirbusDataLoad):
             if windowed_signal.shape == (n_signals, self.window_size):
                 window_list.append(windowed_signal)
 
-                window_id_list.append([(int(signal_indices), int(window_indices), int(ys)) for signal_indices, window_indices, ys in list(zip(list(range(0,n_signals)), [window_i] * n_signals, y))])
+                y_sig_win_label_list.append([(int(signal_indices), int(window_indices), int(ys)) for signal_indices, window_indices, ys in list(zip(list(range(0,n_signals)), [window_i] * n_signals, y))])
 
-                window_label_list.append(y)
+                # window_label_list.append(y)
 
             else:
                 break
 
         print(np.shape(np.array(window_list)))  # shape of the windowed signal
 
+        x = np.array(window_list)
+
+        y_sig_win_label_list = np.array(y_sig_win_label_list)[:, :, np.newaxis].repeat(self.window_size, axis=2)
+
+        time_index = np.arange(0, self.window_size, 1)[np.newaxis, np.newaxis, :].repeat(n_signals, axis=1).repeat(x.shape[0], axis=0)[:, :, :, np.newaxis]
+
+
+        y_time_sig_win_label_array = np.concatenate((time_index, y_sig_win_label_list), axis=3)
         # window_id_array = np.expand_dims(np.array(window_id_list).reshape(-1), axis=1)
         # window_label_array = np.expand_dims(np.array(window_label_list).reshape(-1), axis=1) 
 
         # x = np.vstack(window_list,)
-        x = np.array(window_list)
+        
 
         # y = np.hstack((window_label_array, window_id_array))
-        return x, np.array(window_id_list), np.array(window_label_list)
+        return x, y_time_sig_win_label_array
  
 
     def create_xy_dataframe(self):
