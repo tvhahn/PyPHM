@@ -256,74 +256,29 @@ class AirbusPrepMethodA(AirbusDataLoad):
         # return np.vstack(x), np.vstack(y_time_sig_win_label_array)
         return x, y_time_sample_win_label_array
 
-    def create_xy_dataframe(self):
+    def create_xy_dataframe(self, train_or_val: str = "train"):
         """
         Create a flat dataframe (2D array) of the x and y arrays.
 
         Amenable for use with TSFresh for feature engineering.
 
         Returns
-        ===========
+        -------
         df : pd.DataFrame
             Single flat dataframe containing each sample and its labels.
+            columns: ['x', 'time_index', 'sample_index', 'window_index', 'y']
 
         """
 
-        x, y_labels_ids_times = self.create_xy_arrays()  # create the x and y arrays
+        x, y = self.create_xy_arrays(train_or_val)  # create the x and y arrays
 
-        # concatenate the x and y arrays and reshape them to be a flat array (2D)
-        x_labels = np.reshape(np.concatenate((x, y_labels_ids_times), axis=2), (-1, 9))
+        df = pd.DataFrame(np.vstack(x).reshape(-1,1), columns=['x'])
 
-        # define the column names and the data types
-        col_names = [s.lower() for s in list(self.signal_names)] + [
-            "tool_class",
-            "cut_id",
-            "time",
-        ]
-
-        col_names_ordered = [
-            "cut_id",
-            "cut_no",
-            "case",
-            "time",
-            "ae_spindle",
-            "ae_table",
-            "vib_spindle",
-            "vib_table",
-            "smcdc",
-            "smcac",
-            "tool_class",
-        ]
-
-        col_dtype = [
-            str,
-            int,
-            int,
-            np.float32,
-            np.float32,
-            np.float32,
-            np.float32,
-            np.float32,
-            np.float32,
-            np.float32,
-            int,
-        ]
-
-        col_dtype_dict = dict(zip(col_names_ordered, col_dtype))
-
-        # create a dataframe from the x and y arrays
-        df = pd.DataFrame(x_labels, columns=col_names, dtype=str)
-
-        # split the cut_id by "_" and take the first element (cut_no)
-        df["cut_no"] = df["cut_id"].str.split("_").str[0]
-
-        # get the case from each cut_no using the df_labels
-        df = df.merge(
-            self.df_labels[["cut_no", "case"]].astype(dtype=str),
-            on="cut_no",
-            how="left",
-        )
-
-        df = df[col_names_ordered].astype(col_dtype_dict)  # reorder the columns
+        # add the time_index, sample_index, window_index, and label columns
+        # to the dataframe
+        df = df.assign(time_index=np.vstack(y[:,:,:,0]).reshape(-1,1))
+        df = df.assign(sample_index=np.vstack(y[:,:,:,1]).reshape(-1,1))
+        df = df.assign(win_index=np.vstack(y[:,:,:,2]).reshape(-1,1))
+        df = df.assign(y=np.vstack(y[:,:,:,3]).reshape(-1,1))
 
         return df
