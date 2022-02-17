@@ -199,6 +199,8 @@ class AirbusPrepMethodA(AirbusDataLoad):
         window_list = []
         window_id_list = []
         window_label_list = []
+        signal_index_list = []
+        time_index_list = []
         window_label_id_list = []
 
         # fit the strided windows into the dummy_array until the length
@@ -210,9 +212,9 @@ class AirbusPrepMethodA(AirbusDataLoad):
         print(f"len_signal: {len_signal}")
 
 
-        for i in range(len_signal):
+        for window_i in range(len_signal):
             windowed_signal = x[:,
-                i * self.stride : i * self.stride + self.window_size
+                window_i * self.stride : window_i * self.stride + self.window_size
             ]
 
 
@@ -220,7 +222,7 @@ class AirbusPrepMethodA(AirbusDataLoad):
             if windowed_signal.shape == (n_signals, self.window_size):
                 window_list.append(windowed_signal)
 
-                window_id_list.append(np.array([str(j) + "_" + str (k) for j, k in list(zip(list(range(0,n_signals)), [i] * n_signals))]))
+                window_id_list.append([(int(signal_indices), int(window_indices), int(ys)) for signal_indices, window_indices, ys in list(zip(list(range(0,n_signals)), [window_i] * n_signals, y))])
 
                 window_label_list.append(y)
 
@@ -229,12 +231,14 @@ class AirbusPrepMethodA(AirbusDataLoad):
 
         print(np.shape(np.array(window_list)))  # shape of the windowed signal
 
-        window_id_array = np.expand_dims(np.array(window_id_list).reshape(-1), axis=1)
-        window_label_array = np.expand_dims(np.array(window_label_list).reshape(-1), axis=1) 
+        # window_id_array = np.expand_dims(np.array(window_id_list).reshape(-1), axis=1)
+        # window_label_array = np.expand_dims(np.array(window_label_list).reshape(-1), axis=1) 
 
-        x = np.vstack(window_list,)
-        y = np.hstack((window_label_array, window_id_array))
-        return x, y
+        # x = np.vstack(window_list,)
+        x = np.array(window_list)
+
+        # y = np.hstack((window_label_array, window_id_array))
+        return x, np.array(window_id_list), np.array(window_label_list)
  
 
     def create_xy_dataframe(self):
