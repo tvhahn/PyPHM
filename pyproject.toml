@@ -1,6 +1,9 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+# AVOID CHANGING REQUIRES: IT WILL BE UPDATED BY PYSCAFFOLD!
+requires = ["setuptools>=46.1.0", "setuptools_scm[toml]>=5", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[project.optional-dependencies]
-doc = ["sphinx~=4.4.0", "myst-parser"]
+[tool.setuptools_scm]
+# For smarter version schemes and other configuration options,
+# check out https://github.com/pypa/setuptools_scm
+version_scheme = "no-guess-dev"
