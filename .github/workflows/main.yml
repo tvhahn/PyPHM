@@ -26,7 +26,7 @@ jobs:
           architecture: x64
       
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -e .
 
       - name: Run Tests
         run: python -m unittest discover -s tests
