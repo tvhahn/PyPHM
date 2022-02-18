@@ -1,5 +1,18 @@
 # PyPHM
-Datasets specific to Prognostics and Health Management. Easily download and prepare the data before feature engineering or model training.
+**Machinery data, made easy**
+
+Easily download and prepare common Prognostics and Health Monitoring datasets. Skip the tedious data-prep work so you can focus on using the data.
+
+Current datasets:
+- UC-Berkeley Milling Dataset (from NASA)
+- IMS Bearing Dataset
+- [Airbus Helicopter Accelerometer Dataset](https://www.research-collection.ethz.ch/handle/20.500.11850/415151)
+
+
+
+
+## Alpha Notice
+This package is in active development. 
 
 Once `setup.py` is established, run `python -m pip install -e .` to install the package on your local machine.
 
