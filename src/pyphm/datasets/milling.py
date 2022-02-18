@@ -4,6 +4,7 @@ import pandas as pd
 from pathlib import Path
 from .pyphm import PHMDataset
 from typing import Any, Callable, List, Optional, Tuple
+import pkg_resources
 from .utils import (
     download_and_extract_archive,
     extract_archive,
@@ -159,11 +160,7 @@ class MillingPrepMethodA(MillingDataLoad):
             self.path_df_labels = path_df_labels
         else:
             # path of pyphm source directory using pathlib
-            self.path_df_labels = (
-                Path(__file__).parent
-                / "auxilary_metadata"
-                / "milling_labels_with_tool_class.csv"
-            )
+            self.path_df_labels = Path(pkg_resources.resource_filename('pyphm', 'datasets/auxilary_metadata/milling_labels_with_tool_class.csv'))
 
         # load the labels dataframe
         self.df_labels = pd.read_csv(self.path_df_labels)
