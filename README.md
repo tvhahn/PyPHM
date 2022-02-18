@@ -7,6 +7,7 @@ Current datasets:
 - UC-Berkeley Milling Dataset (from NASA)
 - IMS Bearing Dataset
 - [Airbus Helicopter Accelerometer Dataset](https://www.research-collection.ethz.ch/handle/20.500.11850/415151)
+- More coming soon!
 
 
 
