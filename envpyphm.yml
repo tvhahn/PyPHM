@@ -15,7 +15,9 @@ dependencies:
   - rarfile 
   - pytables
   - requests 
+  - xgboost 
   - black
-  - pyscaffold
-  - tox
-  - pytest
+  - imbalanced-learn
+  - pip:
+    - tsfresh
+

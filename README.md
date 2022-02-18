@@ -1,7 +1,7 @@
 # PyPHM
 **Machinery data, made easy**
 
-Datasets specific to Prognostics and Health Management. Easily download and prepare the data before feature engineering or model training.
+Easily download and prepare common Prognostics and Health Monitoring datasets. Skip the tedious data-prep work so you can focus on using the data.
 
 Current datasets:
 - UC-Berkeley Milling Dataset (from NASA)

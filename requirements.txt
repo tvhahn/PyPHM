@@ -1,0 +1,13 @@
+# local package
+-e .
+
+# external requirements
+pandas
+numpy
+py7zr
+rarfile
+tqdm
+scipy
+requests
+h5py
+tables
