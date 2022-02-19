@@ -18,7 +18,7 @@ This package is in active development. Expect considerable changes in the near f
 ## Installation
 Install with pip: `pip install pyphm`
 
-Install from github repository: `https://github.com/tvhahn/PyPHM.git`. Then run `python -m pip install -e .` to install the package on your local machine.
+Install from github repository: clone with git `clone https://github.com/tvhahn/PyPHM.git`. Then run `python -m pip install -e .` to install the package on your local machine.
 
 Run tests: `python -m unittest discover -s tests`
 
