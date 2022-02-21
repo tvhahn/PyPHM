@@ -127,13 +127,13 @@ class MillingPrepMethodA(MillingDataLoad):
 
         download (bool): If True, the data will be downloaded from the NASA Prognostics Repository.
 
-        path_df_labels (Path, optional): Path to the csv of the label dataframe.
+        path_csv_labels (Path, optional): Path to the csv of the label dataframe.
             If not provided, the 'milling_labels_with_tool_class.csv' will be used, provided in the
             PyPHM package.
 
-        window_size (int): Size of the window to be used for the sliding window.
+        window_len (int): Length of the window to be used for the sliding window.
 
-        stride (int): Size of the stride to be used for the sliding window.
+        stride (int): Amount to move (stride) between individual windows of data.
 
         cut_drop_list (list, optional): List of cut numbers to drop. cut_no 17 and 94 are erroneous.
     """
@@ -146,25 +146,25 @@ class MillingPrepMethodA(MillingDataLoad):
         data_file_name: str = "mill.mat",
         download: bool = False,
         data: np.ndarray = None,
-        path_df_labels: Path = None,
-        window_size: int = 64,
+        path_csv_labels: Path = None,
+        window_len: int = 64,
         stride: int = 64,
         cut_drop_list: List[int] = [17, 94],
     ) -> None:
         super().__init__(root, dataset_folder_name, data_file_name, download, data)
 
-        self.window_size = window_size  # size of the window
+        self.window_len = window_len  # size of the window
         self.stride = stride  # stride between windows
         self.cut_drop_list = cut_drop_list  # list of cut numbers to be dropped
 
-        if path_df_labels is not None:
-            self.path_df_labels = path_df_labels
+        if path_csv_labels is not None:
+            self.path_csv_labels = path_csv_labels
         else:
             # path of pyphm source directory using pathlib
-            self.path_df_labels = Path(pkg_resources.resource_filename('pyphm', 'datasets/auxilary_metadata/milling_labels_with_tool_class.csv'))
+            self.path_csv_labels = Path(pkg_resources.resource_filename('pyphm', 'datasets/auxilary_metadata/milling_labels_with_tool_class.csv'))
 
         # load the labels dataframe
-        self.df_labels = pd.read_csv(self.path_df_labels)
+        self.df_labels = pd.read_csv(self.path_csv_labels)
 
         if self.cut_drop_list is not None:
             self.df_labels.drop(
@@ -282,11 +282,11 @@ class MillingPrepMethodA(MillingDataLoad):
         # of the window does not equal the proper length (better way to do this???)
         for i in range(cut_array.shape[0]):
             windowed_signal = cut_array[
-                i * self.stride : i * self.stride + self.window_size
+                i * self.stride : i * self.stride + self.window_len
             ]
 
             # if the windowed signal is the proper length, add it to the list
-            if windowed_signal.shape == (self.window_size, 6):
+            if windowed_signal.shape == (self.window_len, 6):
                 sub_cut_list.append(windowed_signal)
 
                 # create sub_cut_id fstring to keep track of the cut_id and the window_id

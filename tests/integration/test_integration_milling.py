@@ -36,10 +36,10 @@ class TestMilling(unittest.TestCase):
         # load the data and instantiate the data prep class
         mill = MillingPrepMethodA(
             self.root,
-            window_size=64,
+            window_len=64,
             stride=64,
             cut_drop_list=[],
-            path_df_labels=self.labels_path,
+            path_csv_labels=self.labels_path,
             download=False,
         )
 
