@@ -127,8 +127,9 @@ class MillingPrepMethodA(MillingDataLoad):
 
         download (bool): If True, the data will be downloaded from the NASA Prognostics Repository.
 
-        path_df_labels (Path, optional): Path to the dataframe with the labels (as a string).
-            If not provided, the dataframe must be created.
+        path_df_labels (Path, optional): Path to the csv of the label dataframe.
+            If not provided, the 'milling_labels_with_tool_class.csv' will be used, provided in the
+            PyPHM package.
 
         window_size (int): Size of the window to be used for the sliding window.
 
