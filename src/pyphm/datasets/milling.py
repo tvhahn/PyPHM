@@ -135,7 +135,8 @@ class MillingPrepMethodA(MillingDataLoad):
 
         stride (int): Amount to move (stride) between individual windows of data.
 
-        cut_drop_list (list, optional): List of cut numbers to drop. cut_no 17 and 94 are erroneous.
+        cut_drop_list (list, optional): List of cut numbers to drop. cut_no 17 and 94 are erroneous and
+            will be dropped as default.
     """
 
     def __init__(
