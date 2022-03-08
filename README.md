@@ -1,3 +1,5 @@
+![PyPHM Logo](./notebooks/images/logo.png)
+
 # PyPHM
 ![example workflow](https://github.com/tvhahn/PyPHM/actions/workflows/main.yml/badge.svg)
 
