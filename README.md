@@ -3,7 +3,7 @@
 # Machinery data, made easy
 ![example workflow](https://github.com/tvhahn/PyPHM/actions/workflows/main.yml/badge.svg)
 
-Datasets specific to PHM (prognostics and health management. Easily download and prepare the data, in Python, before feature engineering or model training. 
+Datasets specific to PHM (prognostics and health management). Use Python to easily download and prepare the data, before feature engineering or model training. 
 
 Current datasets:
 - [UC-Berkeley Milling Dataset](https://ti.arc.nasa.gov/tech/dash/groups/pcoe/prognostic-data-repository/#milling)
