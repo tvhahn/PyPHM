@@ -1,11 +1,9 @@
 ![PyPHM Logo](./notebooks/images/logo.png)
 
-# PyPHM
+# Machinery data, made easy
 ![example workflow](https://github.com/tvhahn/PyPHM/actions/workflows/main.yml/badge.svg)
 
-**Machinery data, made easy**
-
-Datasets specific to Prognostics and Health Management. Easily download and prepare the data before feature engineering or model training. 
+Datasets specific to PHM (prognostics and health management. Easily download and prepare the data, in Python, before feature engineering or model training. 
 
 Current datasets:
 - [UC-Berkeley Milling Dataset](https://ti.arc.nasa.gov/tech/dash/groups/pcoe/prognostic-data-repository/#milling)
@@ -15,7 +13,7 @@ Current datasets:
 
 
 ## Alpha Notice
-This package is in active development. Expect considerable changes in the near future.
+PyPHM is in active development. Expect considerable changes in the near future.
 
 ## Installation
 Install with pip: `pip install pyphm`
