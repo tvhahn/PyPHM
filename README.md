@@ -6,7 +6,7 @@
 Datasets specific to PHM (prognostics and health management). Use Python to easily download and prepare the data, before feature engineering or model training. 
 
 Current datasets:
-- **UC-Berkeley Milling Dataset**: [example notebook](https://github.com/tvhahn/PyPHM/blob/master/notebooks/milling_example.ipynb); [open notebook in Colab](https://colab.research.google.com/github/tvhahn/PyPHM/blob/master/notebooks/milling_example.ipynb); [dataset source](https://ti.arc.nasa.gov/tech/dash/groups/pcoe/prognostic-data-repository/#milling)
+- **UC-Berkeley Milling Dataset**: [example notebook](https://github.com/tvhahn/PyPHM/blob/master/notebooks/milling_example.ipynb) ([open in Colab](https://colab.research.google.com/github/tvhahn/PyPHM/blob/master/notebooks/milling_example.ipynb)); [dataset source](https://ti.arc.nasa.gov/tech/dash/groups/pcoe/prognostic-data-repository/#milling)
 - **IMS Bearing Dataset**: [dataset source](https://ti.arc.nasa.gov/tech/dash/groups/pcoe/prognostic-data-repository/#bearing)
 - **Airbus Helicopter Accelerometer Dataset**: [dataset source](https://www.research-collection.ethz.ch/handle/20.500.11850/415151)
 - More coming soon!
