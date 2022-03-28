@@ -1,9 +1,6 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools=60.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
 doc = ["sphinx~=4.4.0", "myst-parser"]
-
-[tool.setuptools]
-py-modules = []
