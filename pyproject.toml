@@ -5,7 +5,7 @@ description = "Machinery data, made easy"
 requires-python = ">=3.6"
 
 [build-system]
-requires = ["setuptools~=60.9.2", "wheel"]
+requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
