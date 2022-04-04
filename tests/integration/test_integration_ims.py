@@ -10,7 +10,7 @@ class TestIms(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        print('setUpClass')
+        pass
 
     def setUp(self):
         # path to mill_truncated.mat
@@ -24,7 +24,6 @@ class TestIms(unittest.TestCase):
         )
 
     def tearDown(self):
-        print('tearDown')
         pass
 
     def test_milling_data_prep(self):

@@ -10,7 +10,7 @@ class TestMilling(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        print('setUpClass')
+        pass
 
 
     def setUp(self):
