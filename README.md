@@ -15,6 +15,15 @@ Current datasets:
 ## Alpha Notice
 PyPHM is in active development. Expect considerable changes in the near future.
 
+Our goals are to create:
+
+* A package that implements **common data preprocessing methods** used by others.
+* A package with a **coherent and thoughtful API**.
+* Thorough **documentation**, with plenty of **examples**.
+* A package that is well **tested**.
+* A package built with **continuous integration and continuous deployment**.
+
+
 ## Installation
 Install with pip: `pip install pyphm`
 
