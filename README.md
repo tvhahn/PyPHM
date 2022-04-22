@@ -20,7 +20,7 @@ Our goals are to create:
 * A package that implements **common data preprocessing methods** used by others.
 * A package with a **coherent and thoughtful API**.
 * Thorough **documentation**, with plenty of **examples**.
-* A package that is well **tested**.
+* A package that is well **tested**, with the use of **type hints**.
 * A package built with **continuous integration and continuous deployment**.
 
 
