@@ -32,7 +32,7 @@ class ImsDataLoad(PHMDataset):
 
     mirrors = [
         "https://drive.google.com/file/d/1iJqTYQpHst_uYSyU5d2THsZkA8Vk6Inx/view?usp=sharing",
-        # "https://ti.arc.nasa.gov/m/project/prognostic-repository/",
+        "https://ti.arc.nasa.gov/m/project/prognostic-repository/",
     ]
 
     resources = [
