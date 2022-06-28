@@ -49,6 +49,7 @@ import urllib.request
 import zipfile
 from typing import Any, Callable, List, Iterable, Optional, TypeVar, Dict, IO, Tuple, Iterator
 from urllib.parse import urlparse
+import gdown
 
 import requests
 from tqdm.auto import tqdm
@@ -170,7 +171,9 @@ def download_url(
         # check if file is located on Google Drive
         file_id = _get_google_drive_file_id(url)
         if file_id is not None:
-            return download_file_from_google_drive(file_id, root, filename, md5)
+            print("Goolgle drive file id:", file_id)
+            return gdown.download(id=file_id, output=str(Path(root) / filename), quiet=False)
+            # return download_file_from_google_drive(file_id, root, filename, md5)
 
         # download the file
         try:

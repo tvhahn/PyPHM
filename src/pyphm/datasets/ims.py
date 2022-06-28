@@ -31,7 +31,8 @@ class ImsDataLoad(PHMDataset):
     """
 
     mirrors = [
-        "https://ti.arc.nasa.gov/m/project/prognostic-repository/",
+        "https://drive.google.com/file/d/1iJqTYQpHst_uYSyU5d2THsZkA8Vk6Inx/view?usp=sharing",
+        # "https://ti.arc.nasa.gov/m/project/prognostic-repository/",
     ]
 
     resources = [
@@ -156,7 +157,7 @@ class ImsDataLoad(PHMDataset):
         # get the start time (for the first sample) and convert to unix timestamp
         start_time_unix = time.mktime(
             datetime.datetime.strptime(file_name, "%Y.%m.%d.%H.%M.%S").timetuple()
-            )
+        )
 
         # create dictionary with the signals_array, id_list, run_list, file_list, time_step_array
         data_dict = {
@@ -169,7 +170,6 @@ class ImsDataLoad(PHMDataset):
         }
 
         return data_dict
-
 
     def load_run_as_dict(
         self,
@@ -213,9 +213,8 @@ class ImsDataLoad(PHMDataset):
         # store the data from data_list as a dictionary, with the key being the file name
         data_dict = {}
         for data_dict_i in data_list:
-            data_dict[data_dict_i['file_name']] = data_dict_i
+            data_dict[data_dict_i["file_name"]] = data_dict_i
         return data_dict
-
 
     @staticmethod
     def process_raw_csv_to_df(file_info_dict) -> None:
@@ -326,9 +325,17 @@ class ImsPrepMethodA(ImsDataLoad):
         dataset_folder_name: str = "ims",
         download: bool = False,
     ) -> None:
-        super().__init__(root, dataset_folder_name, download,)
+        super().__init__(
+            root,
+            dataset_folder_name,
+            download,
+        )
 
-    def create_xy_arrays(self, run_no: int = 1, n_jobs: int = None,) -> None:
+    def create_xy_arrays(
+        self,
+        run_no: int = 1,
+        n_jobs: int = None,
+    ) -> None:
 
         # create a list to store the x and y arrays
         x = []  # instantiate X's
@@ -340,17 +347,16 @@ class ImsPrepMethodA(ImsDataLoad):
         # get all the file names from the data_dict and sort them
         file_names = sorted(data_dict.keys())
 
-
         for i, file_name in enumerate(file_names):
 
-            x.append(data_dict[file_name]['signals_array'])
+            x.append(data_dict[file_name]["signals_array"])
             y_ids_runs_files_times_ctimes.append(
                 [
-                    data_dict[file_name]['id'],
-                    data_dict[file_name]['run_no'],
-                    data_dict[file_name]['file_name'],
-                    data_dict[file_name]['sample_index'],
-                    data_dict[file_name]['start_time_unix'],
+                    data_dict[file_name]["id"],
+                    data_dict[file_name]["run_no"],
+                    data_dict[file_name]["file_name"],
+                    data_dict[file_name]["sample_index"],
+                    data_dict[file_name]["start_time_unix"],
                 ]
             )
 
@@ -360,9 +366,9 @@ class ImsPrepMethodA(ImsDataLoad):
 
         return x, np.stack(y_ids_runs_files_times_ctimes).reshape(-1, 5)
 
-
-    def create_xy_df(self, run_no: int = 1, n_jobs: int = None,) -> None:
+    def create_xy_df(
+        self,
+        run_no: int = 1,
+        n_jobs: int = None,
+    ) -> None:
         return self.load_run_as_df(run_no, n_jobs)
-
-
-  

@@ -38,9 +38,9 @@ class MillingDataLoad(PHMDataset):
     """
 
     mirrors = [
-        "https://github.com/tvhahn/ml-tool-wear/raw/master/data/raw/",
+        # "https://github.com/tvhahn/ml-tool-wear/raw/master/data/raw/",
         "https://drive.google.com/file/d/1_4Hm8RO_7Av1LzGtFnhx6cIN-zi-W40j/view?usp=sharing",
-        "https://ti.arc.nasa.gov/m/project/prognostic-repository/"     
+        # "https://ti.arc.nasa.gov/m/project/prognostic-repository/"     
     ]
 
     resources = [
