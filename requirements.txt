@@ -11,3 +11,4 @@ scipy
 requests
 h5py
 tables
+gdown
