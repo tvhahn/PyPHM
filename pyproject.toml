@@ -1,6 +1,6 @@
 [project]
 name = "pyphm"
-version = "0.0.4"
+version = "0.0.5"
 description = "Machinery data, made easy"
 requires-python = ">=3.6"
 
