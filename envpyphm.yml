@@ -1,4 +1,4 @@
-name: featstore
+name: pyphm
 channels:
   - conda-forge
 dependencies:
@@ -15,9 +15,7 @@ dependencies:
   - rarfile 
   - pytables
   - requests 
-  - xgboost 
   - black
-  - imbalanced-learn
-  - pip:
-    - tsfresh
+  - gdown
+
 
