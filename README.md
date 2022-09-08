@@ -1,7 +1,8 @@
 ![PyPHM Logo](./notebooks/images/logo.png)
 
 # Machinery data, made easy
-![example workflow](https://github.com/tvhahn/PyPHM/actions/workflows/main.yml/badge.svg)
+![example workflow](https://github.com/tvhahn/PyPHM/actions/workflows/main.yml/badge.svg) [![arXiv](https://img.shields.io/badge/arXiv-2205.15489-b31b1b.svg)](https://arxiv.org/abs/2205.15489)
+
 
 Datasets specific to PHM (prognostics and health management). Use Python to easily download and prepare the data, before feature engineering or model training. 
 
