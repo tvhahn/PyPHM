@@ -2,10 +2,11 @@ name: pyphm
 channels:
   - conda-forge
 dependencies:
-  - python=3.8
+  - python=3.11
   - conda
   - mamba
   - jupyterlab
+  - ipywidgets
   - scipy
   - matplotlib
   - seaborn
@@ -15,7 +16,6 @@ dependencies:
   - rarfile 
   - pytables
   - requests 
-  - black
   - gdown
 
 
