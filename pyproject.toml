@@ -3,10 +3,32 @@ name = "pyphm"
 version = "0.0.5"
 description = "Machinery data, made easy"
 requires-python = ">=3.6"
+readme = "README.md"
+authors = [
+  { name = "Tim von Hahn", email = "t.vonhahn@queensu.ca" },
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "pandas",
+  "numpy",
+  "py7zr",
+  "rarfile",
+  "tqdm",
+  "scipy",
+  "requests",
+  "h5py",
+  "tables",
+  "gdown"
+]
 
-[build-system]
-requires = ["setuptools>=42", "wheel"]
-build-backend = "setuptools.build_meta"
+[project.urls]
+Homepage = "https://github.com/tvhahn/PyPHM"
+Repository = "https://github.com/tvhahn/PyPHM"
+Documentation = "https://github.com/tvhahn/PyPHM"
 
 [project.optional-dependencies]
 doc = ["sphinx~=4.4.0", "myst-parser"]

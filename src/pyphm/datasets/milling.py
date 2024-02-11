@@ -38,13 +38,14 @@ class MillingDataLoad(PHMDataset):
     """
 
     mirrors = [
+        "https://phm-datasets.s3.amazonaws.com/NASA/",
         # "https://github.com/tvhahn/ml-tool-wear/raw/master/data/raw/",
         "https://drive.google.com/file/d/1_4Hm8RO_7Av1LzGtFnhx6cIN-zi-W40j/view?usp=sharing",
-        # "https://ti.arc.nasa.gov/m/project/prognostic-repository/"     
     ]
 
     resources = [
-        ("mill.zip", "81d821fdef812183a7d38b6f83f7cefa"),
+        ("3.+Milling.zip", "4da3afb0aa50cb3dcdd8e20ed1ed1c7c"),
+        ("mill.zip", "81d821fdef812183a7d38b6f83f7cefa"),        
     ]
 
     def __init__(
