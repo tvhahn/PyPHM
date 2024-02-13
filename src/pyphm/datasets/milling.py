@@ -37,15 +37,27 @@ class MillingDataLoad(PHMDataset):
 
     """
 
-    mirrors = [
-        "https://phm-datasets.s3.amazonaws.com/NASA/",
-        # "https://github.com/tvhahn/ml-tool-wear/raw/master/data/raw/",
-        "https://drive.google.com/file/d/1_4Hm8RO_7Av1LzGtFnhx6cIN-zi-W40j/view?usp=sharing",
-    ]
-
     resources = [
-        ("3.+Milling.zip", "4da3afb0aa50cb3dcdd8e20ed1ed1c7c"),
-        ("mill.zip", "81d821fdef812183a7d38b6f83f7cefa"),        
+        {
+            "name": "aws",
+            "url": "https://phm-datasets.s3.amazonaws.com/NASA/",
+            "files": [
+                {
+                    "filename": "3.+Milling.zip",
+                    "md5": "4da3afb0aa50cb3dcdd8e20ed1ed1c7c",
+                }
+            ],
+        },
+        {
+            "name": "github",
+            "url": "https://github.com/tvhahn/Manufacturing-Data-Science-with-Python/raw/master/Data%20Sets/milling_uc_berkeley/raw/",
+            "files": [
+                {
+                    "filename": "mill.zip",
+                    "md5": "81d821fdef812183a7d38b6f83f7cefa",
+                }
+            ],
+        },
     ]
 
     def __init__(
@@ -71,46 +83,83 @@ class MillingDataLoad(PHMDataset):
         self.data = self.load_mat()
 
     def _check_exists(self) -> bool:
-        return all(
-            check_integrity(self.dataset_folder_path / file_name)
-            for file_name, _ in self.resources
-        )
+        for source in self.resources:
+            for file in source["files"]:
+                file_name = file["filename"]
+                file_path = self.dataset_folder_path / file_name
+                if not check_integrity(file_path, file["md5"]):
+                    return False
+        return True
+
 
     def download(self) -> None:
-        """Download the UC Berkeley milling data if it doesn't exist already."""
+        """Download the data files from their sources if they don't exist already."""
 
         if self._check_exists():
+            print("Files already downloaded and verified.")
             return
 
-        # pathlib makdir if not exists
+        # Ensure the dataset folder exists
         self.dataset_folder_path.mkdir(parents=True, exist_ok=True)
 
-        # download files
-        for filename, md5 in self.resources:
-            for mirror in self.mirrors:
-                url = f"{mirror}{filename}"
+        successful_download = False
+
+        for source in self.resources:
+            all_files_downloaded = True  # Assume success, prove otherwise
+
+            for file in source["files"]:
+                file_name = file["filename"]
+                md5 = file["md5"]
+                file_path = self.dataset_folder_path / file_name
+
+                # Check if the file already exists and is verified
+                if check_integrity(file_path, md5):
+                    print(f"{file_name} already exists and is verified.")
+                    continue  # Skip to the next file as this one is already handled
+
+                # Construct the URL for downloading
+                url = f"{source['url']}{file_name}"
+
                 try:
-                    print(f"Downloading {url}")
+                    print(f"Attempting to download {url}")
                     download_and_extract_archive(
                         url,
-                        download_root=self.dataset_folder_path,
-                        filename=filename,
+                        download_root=str(self.dataset_folder_path),
+                        filename=file_name,
                         md5=md5,
+                        remove_finished=True,
                     )
+                    # After successful download and extraction, check for and extract any nested archive
+                    self.check_and_extract_nested(file_path.parent)
+
                 except URLError as error:
-                    print(f"Failed to download (trying next):\n{error}")
-                    continue
-                finally:
-                    print()
-                break
-            else:
-                raise RuntimeError(f"Error downloading {filename}")
+                    print(f"Failed to download {file_name} from {source['name']}:\n{error}")
+                    all_files_downloaded = False  # Mark as failed to trigger another source attempt
+                    break  # Exit the file loop to try the next source
+
+            if all_files_downloaded:
+                successful_download = True
+                print(f"Successfully downloaded all files from {source['name']}")
+                break  # Exit the source loop since we've successfully downloaded from this source
+
+        if not successful_download:
+            raise RuntimeError("Failed to download files from all sources.")
+
+    def check_and_extract_nested(self, directory: Path) -> None:
+        """Check for and extract any nested archives in the given directory."""
+        for item in directory.iterdir():
+            if item.is_dir():
+                # Check each directory for nested archives
+                for nested_item in item.iterdir():
+                    if nested_item.suffix in ['.zip', '.tar', '.gz']:
+                        print(f"Found nested archive: {nested_item}")
+                        extract_archive(str(nested_item), str(directory), remove_finished=True)
+
+
 
     def load_mat(self) -> np.ndarray:
         """Load the mat file and return the data as a numpy array."""
-        data = sio.loadmat(
-            self.dataset_folder_path / self.data_file_name, struct_as_record=True
-        )
+        data = sio.loadmat(self.dataset_folder_path / self.data_file_name, struct_as_record=True)
         return data["mill"]
 
 
@@ -165,15 +214,17 @@ class MillingPrepMethodA(MillingDataLoad):
             self.path_csv_labels = path_csv_labels
         else:
             # path of pyphm source directory using pathlib
-            self.path_csv_labels = Path(pkg_resources.resource_filename('pyphm', 'datasets/auxilary_metadata/milling_labels_with_tool_class.csv'))
+            self.path_csv_labels = Path(
+                pkg_resources.resource_filename(
+                    "pyphm", "datasets/auxilary_metadata/milling_labels_with_tool_class.csv"
+                )
+            )
 
         # load the labels dataframe
         self.df_labels = pd.read_csv(self.path_csv_labels)
 
         if self.cut_drop_list is not None:
-            self.df_labels.drop(
-                self.cut_drop_list, inplace=True
-            )  # drop the cuts that are bad
+            self.df_labels.drop(self.cut_drop_list, inplace=True)  # drop the cuts that are bad
 
         self.df_labels.reset_index(drop=True, inplace=True)  # reset the index
 
@@ -250,9 +301,7 @@ class MillingPrepMethodA(MillingDataLoad):
 
         """
 
-        assert (
-            cut_no in self.df_labels["cut_no"].values
-        ), "Cut number must be in the dataframe"
+        assert cut_no in self.df_labels["cut_no"].values, "Cut number must be in the dataframe"
 
         # create a numpy array of the cut
         # with a final array shape like [no. cuts, len cuts, no. signals]
@@ -261,14 +310,10 @@ class MillingPrepMethodA(MillingDataLoad):
             if i == 0:
                 cut_array = cut[signal_name].reshape((9000, 1))
             else:
-                cut_array = np.concatenate(
-                    (cut_array, cut[signal_name].reshape((9000, 1))), axis=1
-                )
+                cut_array = np.concatenate((cut_array, cut[signal_name].reshape((9000, 1))), axis=1)
 
         # select the start and end of the cut
-        start = self.df_labels[self.df_labels["cut_no"] == cut_no][
-            "window_start"
-        ].values[0]
+        start = self.df_labels[self.df_labels["cut_no"] == cut_no]["window_start"].values[0]
         end = self.df_labels[self.df_labels["cut_no"] == cut_no]["window_end"].values[0]
         cut_array = cut_array[start:end, :]
 
@@ -278,16 +323,12 @@ class MillingPrepMethodA(MillingDataLoad):
         sub_cut_label_list = []
 
         # get the labels for the cut
-        label = self.df_labels[self.df_labels["cut_no"] == cut_no]["tool_class"].values[
-            0
-        ]
+        label = self.df_labels[self.df_labels["cut_no"] == cut_no]["tool_class"].values[0]
 
         # fit the strided windows into the dummy_array until the length
         # of the window does not equal the proper length (better way to do this???)
         for i in range(cut_array.shape[0]):
-            windowed_signal = cut_array[
-                i * self.stride : i * self.stride + self.window_len
-            ]
+            windowed_signal = cut_array[i * self.stride : i * self.stride + self.window_len]
 
             # if the windowed signal is the proper length, add it to the list
             if windowed_signal.shape == (self.window_len, 6):
@@ -312,18 +353,14 @@ class MillingPrepMethodA(MillingDataLoad):
 
         # take the length of the signals in the sub_cut_array
         # and divide it by the frequency (250 Hz) to get the time (seconds) of each sub-cut
-        sub_cut_times = np.expand_dims(
-            np.arange(0, sub_cut_array.shape[1]) / 250.0, axis=0
-        )
+        sub_cut_times = np.expand_dims(np.arange(0, sub_cut_array.shape[1]) / 250.0, axis=0)
         sub_cut_times = np.repeat(
             sub_cut_times,
             sub_cut_array.shape[0],
             axis=0,
         )
 
-        sub_cut_labels_ids_times = np.stack(
-            (sub_cut_labels, sub_cut_ids, sub_cut_times), axis=2
-        )
+        sub_cut_labels_ids_times = np.stack((sub_cut_labels, sub_cut_ids, sub_cut_times), axis=2)
 
         return (
             sub_cut_array,

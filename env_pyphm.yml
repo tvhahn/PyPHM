@@ -16,6 +16,6 @@ dependencies:
   - rarfile 
   - pytables
   - requests 
-  - gdown
+  - gdown=4.6.0
 
 
